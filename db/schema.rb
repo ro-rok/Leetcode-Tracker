@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_04_19_194756) do
+ActiveRecord::Schema[8.0].define(version: 2025_04_19_194906) do
   create_table "companies", force: :cascade do |t|
     t.string "name"
     t.datetime "created_at", null: false
@@ -39,6 +39,19 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_19_194756) do
     t.index ["study_plan_id"], name: "index_study_plan_companies_on_study_plan_id"
   end
 
+  create_table "study_plan_questions", force: :cascade do |t|
+    t.integer "study_plan_id", null: false
+    t.integer "question_id", null: false
+    t.boolean "finished"
+    t.json "tags"
+    t.integer "revisits"
+    t.datetime "last_attempted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["question_id"], name: "index_study_plan_questions_on_question_id"
+    t.index ["study_plan_id"], name: "index_study_plan_questions_on_study_plan_id"
+  end
+
   create_table "study_plans", force: :cascade do |t|
     t.integer "user_id", null: false
     t.string "name"
@@ -51,5 +64,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_19_194756) do
   add_foreign_key "questions", "companies"
   add_foreign_key "study_plan_companies", "companies"
   add_foreign_key "study_plan_companies", "study_plans"
+  add_foreign_key "study_plan_questions", "questions"
+  add_foreign_key "study_plan_questions", "study_plans"
   add_foreign_key "study_plans", "users"
 end
