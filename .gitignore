@@ -27,6 +27,10 @@
 /tmp/storage/*
 !/tmp/storage/
 !/tmp/storage/.keep
+/db/*.sqlite3
+/db/*.sqlite3-shm
+/db/*.sqlite3-wal
 
 # Ignore master key for decrypting credentials and more.
 /config/master.key
+
