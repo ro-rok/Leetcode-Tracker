@@ -1,0 +1,19 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  title: MyString
+  link: MyString
+  difficulty: MyString
+  frequency: 1
+  acceptance_rate: 1.5
+  timeframe: MyString
+  company: one
+
+two:
+  title: MyString
+  link: MyString
+  difficulty: MyString
+  frequency: 1
+  acceptance_rate: 1.5
+  timeframe: MyString
+  company: two
