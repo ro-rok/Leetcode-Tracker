@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_04_19_194906) do
+ActiveRecord::Schema[8.0].define(version: 2025_04_19_195045) do
   create_table "companies", force: :cascade do |t|
     t.string "name"
     t.datetime "created_at", null: false
@@ -61,10 +61,20 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_19_194906) do
     t.index ["user_id"], name: "index_study_plans_on_user_id"
   end
 
+  create_table "user_activities", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.string "action"
+    t.json "metadata"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_user_activities_on_user_id"
+  end
+
   add_foreign_key "questions", "companies"
   add_foreign_key "study_plan_companies", "companies"
   add_foreign_key "study_plan_companies", "study_plans"
   add_foreign_key "study_plan_questions", "questions"
   add_foreign_key "study_plan_questions", "study_plans"
   add_foreign_key "study_plans", "users"
+  add_foreign_key "user_activities", "users"
 end
