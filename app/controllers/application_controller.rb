@@ -1,2 +1,5 @@
 class ApplicationController < ActionController::API
-end
+    include ActionController::Cookies
+    before_action :authenticate_user!
+  end
+  
