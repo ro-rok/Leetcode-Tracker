@@ -1,9 +1,16 @@
-# This file should ensure the existence of records required to run the application in every environment (production,
-# development, test). The code here should be idempotent so that it can be executed at any point in every environment.
-# The data can then be loaded with the bin/rails db:seed command (or created alongside the database with db:setup).
-#
-# Example:
-#
-#   ["Action", "Comedy", "Drama", "Horror"].each do |genre_name|
-#     MovieGenre.find_or_create_by!(name: genre_name)
-#   end
+require 'net/http'
+require 'json'
+require 'uri'
+
+puts "Fetching company list from GitHub…"
+uri   = URI("https://api.github.com/repos/liquidslr/leetcode-company-wise-problems/contents")
+res   = Net::HTTP.get_response(uri)
+items = JSON.parse(res.body)
+
+dirs = items.select { |item| item["type"] == "dir" }.map { |item| item["name"] }
+
+dirs.each do |company_name|
+  Company.find_or_create_by!(name: company_name)
+end
+
+puts "Seeded #{Company.count} companies."
