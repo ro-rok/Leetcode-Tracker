@@ -1,0 +1,63 @@
+import React, { useState, useEffect, useRef } from 'react'
+
+const TIMEFRAMES = ['30_days','60_days','90_days','more_than_six_months','all_time']
+
+export default function QuestionsPanel({ company }) {
+  const [tf, setTf] = useState(TIMEFRAMES[0])
+  const [qs, setQs] = useState([])
+  const popupRef = useRef(null)
+
+  useEffect(() => {
+    fetch(`/companies/${company.id}/questions.json?timeframe=${tf}`)
+      .then(r => r.json())
+      .then(setQs)
+  }, [company, tf])
+
+  const onSolveClick = q => {
+    // open external tab
+    popupRef.current = window.open(q.link, '_blank')
+    window.addEventListener('focus', () => {
+      if (popupRef.current && popupRef.current.closed) {
+        popupRef.current = null
+        if (window.confirm(`Mark "${q.title}" solved?`)) {
+          fetch(`/questions/${q.id}/solve.json`, { method: 'POST', credentials: 'include' })
+            .then(() => setQs(qs.map(x => x.id===q.id?{...x,solved:true}:x)))
+        }
+      }
+    }, { once: true })
+  }
+
+  return (
+    <div>
+      <h2 className="text-xl mb-2">{company.name} Questions</h2>
+      <div className="mb-4 space-x-2">
+        {TIMEFRAMES.map(t => (
+          <button
+            key={t}
+            onClick={()=>setTf(t)}
+            className={`px-2 py-1 rounded ${
+              tf===t ? 'bg-green-500 text-white' : 'bg-gray-200 dark:bg-gray-700'
+            }`}
+          >{t.replace(/_/g,' ')}</button>
+        ))}
+      </div>
+      <ul>
+        {qs.map(q=>(
+          <li key={q.id} className="mb-2 flex justify-between items-center">
+            <div>
+              <div className="font-semibold">{q.title}</div>
+              <div className="text-sm">{q.difficulty} · freq: {q.frequency} · solved: {q.solved?'✅':'❌'}</div>
+            </div>
+            <button
+              disabled={q.solved}
+              onClick={()=>onSolveClick(q)}
+              className="px-3 py-1 bg-blue-500 text-white rounded disabled:opacity-50"
+            >
+              {q.solved ? 'Solved' : 'Solve'}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
