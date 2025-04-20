@@ -1,19 +1,26 @@
-import { useState, useEffect } from 'react'
-import Login from './components/Login'
-import Companies from './components/Companies'
+// src/App.jsx
+import React, { useState, useEffect } from 'react'
+import CompaniesList from './components/CompaniesList'
+import QuestionsPanel from './components/QuestionsPanel'
+import RandomPanel from './components/RandomPanel'
+import DarkModeToggle from './components/DarkModeToggle'
 
 export default function App() {
-  const [user, setUser] = useState(null)
-
-  // On mount, you could check /users/current.json if you have that.
-  // For simplicity we just show login until they log in.
+  const [company, setCompany] = useState(null)
 
   return (
-    <div className="max-w-3xl mx-auto p-4">
-      {user
-        ? <Companies user={user}/>
-        : <Login onLogin={setUser}/>
-      }
+    <div className="flex h-screen">
+      <aside className="w-64 bg-gray-100 dark:bg-gray-800 p-4 overflow-auto">
+        <DarkModeToggle />
+        <CompaniesList onSelect={setCompany} selected={company?.id} />
+      </aside>
+      <main className="flex-1 p-6 overflow-auto">
+        {company
+          ? <QuestionsPanel company={company} />
+          : <div>Select a company to see its questions</div>}
+        <hr className="my-6 border-gray-300 dark:border-gray-700"/>
+        <RandomPanel company={company} />
+      </main>
     </div>
   )
 }
