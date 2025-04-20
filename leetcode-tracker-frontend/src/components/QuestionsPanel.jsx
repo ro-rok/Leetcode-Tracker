@@ -1,66 +1,69 @@
-import React, { useState, useEffect, useRef } from 'react'
+// src/components/QuestionsPanel.jsx
+import React, { useState, useEffect } from 'react'
 import api from '../api'
 
-const TIMEFRAMES = ['30_days','60_days','90_days','more_than_six_months','all_time']
-
 export default function QuestionsPanel({ company }) {
-  const [tf, setTf] = useState(TIMEFRAMES[0])
-  const [qs, setQs] = useState([])
-  const popupRef = useRef(null)
+  const [timeframe, setTimeframe] = useState('30_days')
+  const [questions, setQuestions] = useState([])
 
   useEffect(() => {
-    const url = tf === 'all_time'
-        ? `/companies/${company.id}/questions.json`
-        : `/companies/${company.id}/questions.json?timeframe=${tf}`
-        api.get(url)
-        .then(r => setQs(r.data))
-        .catch(console.error)
-  }, [company, tf])
+    api.get(`/companies/${company.id}/questions.json`, {
+      params: { timeframe }
+    })
+      .then(res => setQuestions(res.data))
+      .catch(console.error)
+  }, [company.id, timeframe])
 
-  const onSolveClick = q => {
-    // open external tab
-    popupRef.current = window.open(q.link, '_blank')
-        // wait for user to return
-        const handler = () => {
-          if (popupRef.current?.closed) {
-            window.removeEventListener('focus', handler)
-            popupRef.current = null
-            if (window.confirm(`Mark "${q.title}" solved?`)) {
-              api.post(`/questions/${q.id}/solve.json`)
-                .then(() => setQs(qs.map(x => x.id===q.id?{ ...x, solved: true }: x)))
-            }
-          }
-        }
-        window.addEventListener('focus', handler)
+  const handleSolve = q => {
+    const win = window.open(q.link, '_blank')
+    const timer = setInterval(async () => {
+      if (win.closed) {
+        clearInterval(timer)
+        await api.post(`/questions/${q.id}/solve.json`)
+        setQuestions(questions.map(x =>
+          x.id === q.id ? { ...x, solved: true } : x
+        ))
+        alert(`Marked solved: ${q.title}`)
+      }
+    }, 500)
   }
 
   return (
-    <div>
-      <h2 className="text-xl mb-2">{company.name} Questions</h2>
-      <div className="mb-4 space-x-2">
-        {TIMEFRAMES.map(t => (
-          <button
-            key={t}
-            onClick={()=>setTf(t)}
-            className={`px-2 py-1 rounded ${
-              tf===t ? 'bg-green-500 text-white' : 'bg-gray-200 dark:bg-gray-700'
-            }`}
-          >{t.replace(/_/g,' ')}</button>
-        ))}
-      </div>
+    <div className="mb-6">
+      <h2 className="text-lg mb-2">{company.name} Questions</h2>
+      <select
+        value={timeframe}
+        onChange={e => setTimeframe(e.target.value)}
+        className="mb-4 p-2 rounded bg-white dark:bg-gray-700"
+      >
+        <option value="30_days">Last 30 days</option>
+        <option value="60_days">Last 60 days</option>
+        <option value="90_days">Last 90 days</option>
+        <option value="more_than_six_months">&gt; 6 months</option>
+        <option value="all_time">All time</option>
+      </select>
       <ul>
-        {qs.map(q=>(
-          <li key={q.id} className="mb-2 flex justify-between items-center">
+        {questions.map(q => (
+          <li key={q.id} className="flex justify-between mb-2">
             <div>
-              <div className="font-semibold">{q.title}</div>
-              <div className="text-sm">{q.difficulty} · freq: {q.frequency} · solved: {q.solved?'✅':'❌'}</div>
+              <a
+                href={q.link}
+                target="_blank"
+                rel="noopener"
+                className="underline"
+              >
+                {q.title}
+              </a>
+              <span className="ml-2 text-sm text-gray-500">
+                {q.difficulty} · freq: {q.frequency} · solved: {q.solved ? '✅' : '❌'}
+              </span>
             </div>
             <button
+              onClick={() => handleSolve(q)}
               disabled={q.solved}
-              onClick={()=>onSolveClick(q)}
-              className="px-3 py-1 bg-blue-500 text-white rounded disabled:opacity-50"
+              className="px-3 py-1 bg-green-500 dark:bg-green-400 text-white rounded disabled:opacity-50"
             >
-              {q.solved ? 'Solved' : 'Solve'}
+              Solve
             </button>
           </li>
         ))}
