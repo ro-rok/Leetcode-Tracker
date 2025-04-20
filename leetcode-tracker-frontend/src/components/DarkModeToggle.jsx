@@ -1,4 +1,5 @@
 import React from 'react'
+import { useState, useEffect } from 'react'
 
 export default function DarkModeToggle() {
     const [dark, setDark] = useState(false)
