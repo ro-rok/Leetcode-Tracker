@@ -1,49 +1,57 @@
-import { useState } from 'react'
+// src/components/Login.jsx
+import React, { useState } from 'react'
+import api from '../api'
 
 export default function Login({ onLogin }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
+  const [error, setError] = useState(null)
 
-  const handle = async e => {
+  const handleSubmit = async e => {
     e.preventDefault()
-    setError('')
-    const res = await fetch('/users/sign_in.json', {
-      method: 'POST',
-      credentials: 'include',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ user: { email, password } })
-    })
-    if (res.ok) {
-      const u = await res.json()
-      onLogin(u)          // { id, email }
-    } else {
-      const err = await res.json().catch(()=>({error:'Bad'}))
-      setError(err.error || 'Login failed')
+    try {
+      const res = await api.post('/users/sign_in.json', {
+        'user[email]': email,
+        'user[password]': password
+      })
+      onLogin(res.data) // { id, email }
+    } catch (err) {
+      setError(err.response?.data?.error || 'Login failed')
     }
   }
 
   return (
-    <form onSubmit={handle} className="space-y-4 bg-white p-6 rounded shadow">
-      <h1 className="text-2xl font-bold">Sign In</h1>
+    <form
+      onSubmit={handleSubmit}
+      className="max-w-sm mx-auto mt-20 p-6 bg-gray-100 dark:bg-gray-800 rounded"
+    >
+      <h2 className="text-xl mb-4">Log In</h2>
       {error && <div className="text-red-500">{error}</div>}
-      <div>
-        <label className="block">Email</label>
-        <input type="email" value={email}
-          onChange={e=>setEmail(e.target.value)}
-          className="w-full border p-2 rounded"
-          required/>
-      </div>
-      <div>
-        <label className="block">Password</label>
-        <input type="password" value={password}
-          onChange={e=>setPassword(e.target.value)}
-          className="w-full border p-2 rounded"
-          required/>
-      </div>
-      <button type="submit"
-        className="bg-blue-600 text-white px-4 py-2 rounded">
-        Log In
+      <label className="block mb-2">
+        Email
+        <input
+          type="email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          className="w-full p-2 rounded mt-1 bg-white dark:bg-gray-700"
+          required
+        />
+      </label>
+      <label className="block mb-4">
+        Password
+        <input
+          type="password"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          className="w-full p-2 rounded mt-1 bg-white dark:bg-gray-700"
+          required
+        />
+      </label>
+      <button
+        type="submit"
+        className="w-full py-2 bg-blue-600 dark:bg-blue-500 text-white rounded"
+      >
+        Sign In
       </button>
     </form>
   )
