@@ -1,25 +1,13 @@
-// src/components/CompaniesList.jsx
-import React, { useState, useEffect } from 'react'
-import api from '../api'
-
-export default function CompaniesList({ onSelect, selected }) {
-  const [companies, setCompanies] = useState([])
-
-  useEffect(() => {
-    api.get('/companies.json')
-      .then(res => setCompanies(res.data))
-      .catch(console.error)
-  }, [])
-
+export default function CompanyList({ companies, selected, onSelect }) {
   return (
-    <ul>
+    <ul className="space-y-1">
       {companies.map(c => (
-        <li key={c.id} className="mb-1">
+        <li key={c.id}>
           <button
-            className={`w-full text-left p-2 rounded ${
-              selected === c.id
-                ? 'bg-blue-200 dark:bg-blue-600 font-bold'
-                : 'hover:bg-gray-200 dark:hover:bg-gray-700'
+            className={`w-full text-left px-2 py-1 rounded ${
+              selected?.id === c.id
+                ? 'bg-blue-600 text-white'
+                : 'hover:bg-blue-100'
             }`}
             onClick={() => onSelect(c)}
           >
@@ -28,5 +16,5 @@ export default function CompaniesList({ onSelect, selected }) {
         </li>
       ))}
     </ul>
-  )
+  );
 }
