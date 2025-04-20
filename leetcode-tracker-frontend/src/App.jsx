@@ -4,12 +4,14 @@ import CompaniesList from './components/CompaniesList'
 import QuestionsPanel from './components/QuestionsPanel'
 import RandomPanel from './components/RandomPanel'
 import DarkModeToggle from './components/DarkModeToggle'
+import Header from './components/Header'
 
 export default function App() {
   const [company, setCompany] = useState(null)
 
   return (
     <div className="flex h-screen">
+      <Header />
       <aside className="w-64 bg-gray-100 dark:bg-gray-800 p-4 overflow-auto">
         <DarkModeToggle />
         <CompaniesList onSelect={setCompany} selected={company?.id} />
