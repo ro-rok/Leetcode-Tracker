@@ -1,27 +1,38 @@
 // src/App.jsx
-import React, { useState, useEffect } from 'react'
-import CompaniesList from './components/CompaniesList'
-import QuestionsPanel from './components/QuestionsPanel'
-import RandomPanel from './components/RandomPanel'
-import DarkModeToggle from './components/DarkModeToggle'
-import Header from './components/Header'
+import React, { useState } from 'react'
+import DarkModeToggle from './components/DarkModeToggle.jsx'
+import Login from './components/Login.jsx'
+import Header from './components/Header.jsx'
+import CompaniesList from './components/CompaniesList.jsx'
+import QuestionsPanel from './components/QuestionsPanel.jsx'
+import RandomPanel from './components/RandomPanel.jsx'
 
 export default function App() {
+  const [user, setUser] = useState(null)
   const [company, setCompany] = useState(null)
+
+  if (!user) {
+    return <Login onLogin={setUser} />
+  }
 
   return (
     <div className="flex h-screen">
-      <Header />
       <aside className="w-64 bg-gray-100 dark:bg-gray-800 p-4 overflow-auto">
         <DarkModeToggle />
         <CompaniesList onSelect={setCompany} selected={company?.id} />
       </aside>
-      <main className="flex-1 p-6 overflow-auto">
-        {company
-          ? <QuestionsPanel company={company} />
-          : <div>Select a company to see its questions</div>}
-        <hr className="my-6 border-gray-300 dark:border-gray-700"/>
-        <RandomPanel company={company} />
+      <main className="flex-1 p-4 overflow-auto">
+        <Header user={user} onLogout={() => { setUser(null); setCompany(null) }} />
+        {company ? (
+          <>
+            <QuestionsPanel company={company} />
+            <RandomPanel company={company} />
+          </>
+        ) : (
+          <div className="text-center text-lg mt-20">
+            Please select a company on the left
+          </div>
+        )}
       </main>
     </div>
   )
