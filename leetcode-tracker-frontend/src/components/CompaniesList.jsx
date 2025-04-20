@@ -1,15 +1,16 @@
 // src/components/CompaniesList.jsx
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import api from '../api'
 
 export default function CompaniesList({ onSelect, selected }) {
   const [list, setList] = useState([])
   const nav = useNavigate()
 
   useEffect(() => {
-    fetch('/companies.json')
-      .then(r => r.json())
-      .then(setList)
+    api.get('/companies.json')
+      .then(r => setList(r.data))
+      .catch(() => setList([]))
   }, [])
 
   return (
