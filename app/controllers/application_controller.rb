@@ -1,5 +1,4 @@
-class ApplicationController < ActionController::API
-    include ActionController::Cookies
-    before_action :authenticate_user!
-  end
-  
+class ApplicationController < ActionController::Base
+  # Only enforce CSRF on non‑JSON requests
+  protect_from_forgery with: :exception, unless: -> { request.format.json? }
+end
