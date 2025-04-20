@@ -1,5 +1,6 @@
 class CompaniesController < ApplicationController
     # GET /companies
+    skip_before_action :verify_authenticity_token, only: [:refresh], if: ->{ request.format.json? }
     def index
       companies = Company.order(:name).pluck(:id, :name).map { |id, name| { id: id, name: name } }
       render json: companies

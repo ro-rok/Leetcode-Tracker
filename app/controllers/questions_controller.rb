@@ -27,31 +27,31 @@ class QuestionsController < ApplicationController
   def random
     company = Company.find(params[:company_id])
 
-    scope = company.questions
-                   .where(timeframe: params[:timeframe])
-                   .where(difficulty: params[:difficulty].upcase)
-    if params[:topics].present?
-     # treat NULL as empty string so LIKE won’t blow up on nil
-     scope = scope.where("COALESCE(topics, '') LIKE ?", "%#{params[:topics]}%")
+    # MUST have a timeframe filter
+    scope = company.questions.where(timeframe: params[:timeframe])
+
+    # only filter difficulty if provided
+    if params[:difficulty].present?
+      scope = scope.where(difficulty: params[:difficulty].upcase)
     end
 
+    # only filter topics if provided
+    if params[:topics].present?
+      scope = scope.where("topics LIKE ?", "%#{params[:topics]}%")
+    end
+
+    # exclude already‑solved
     if user_signed_in?
-      solved_ids = current_user.user_questions.where(solved: true).pluck(:question_id)
-      scope = scope.where.not(id: solved_ids)
+      solved = current_user.user_questions.where(solved: true).pluck(:question_id)
+      scope = scope.where.not(id: solved)
     end
 
     question = scope.order(Arel.sql("RANDOM()")).first
     return head :no_content unless question
 
-    render json: {
-      id:         question.id,
-      title:      question.title,
-      link:       question.link,
-      difficulty: question.difficulty,
-      frequency:  question.frequency,
-      acceptance_rate: question.acceptance_rate,
-      topics:     question.topics
-    }
+    render json: question.slice(
+      :id, :title, :link, :difficulty, :frequency, :topics
+    )
   end
 
   # POST /questions/:id/solve
