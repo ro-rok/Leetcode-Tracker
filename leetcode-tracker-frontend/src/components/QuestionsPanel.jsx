@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import api from '../api'
 
 const TIMEFRAMES = ['30_days','60_days','90_days','more_than_six_months','all_time']
 
@@ -8,23 +9,29 @@ export default function QuestionsPanel({ company }) {
   const popupRef = useRef(null)
 
   useEffect(() => {
-    fetch(`/companies/${company.id}/questions.json?timeframe=${tf}`)
-      .then(r => r.json())
-      .then(setQs)
+    const url = tf === 'all_time'
+        ? `/companies/${company.id}/questions.json`
+        : `/companies/${company.id}/questions.json?timeframe=${tf}`
+        api.get(url)
+        .then(r => setQs(r.data))
+        .catch(console.error)
   }, [company, tf])
 
   const onSolveClick = q => {
     // open external tab
     popupRef.current = window.open(q.link, '_blank')
-    window.addEventListener('focus', () => {
-      if (popupRef.current && popupRef.current.closed) {
-        popupRef.current = null
-        if (window.confirm(`Mark "${q.title}" solved?`)) {
-          fetch(`/questions/${q.id}/solve.json`, { method: 'POST', credentials: 'include' })
-            .then(() => setQs(qs.map(x => x.id===q.id?{...x,solved:true}:x)))
+        // wait for user to return
+        const handler = () => {
+          if (popupRef.current?.closed) {
+            window.removeEventListener('focus', handler)
+            popupRef.current = null
+            if (window.confirm(`Mark "${q.title}" solved?`)) {
+              api.post(`/questions/${q.id}/solve.json`)
+                .then(() => setQs(qs.map(x => x.id===q.id?{ ...x, solved: true }: x)))
+            }
+          }
         }
-      }
-    }, { once: true })
+        window.addEventListener('focus', handler)
   }
 
   return (
