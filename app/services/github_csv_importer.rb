@@ -43,6 +43,7 @@ class GithubCsvImporter
         q.difficulty      = row['Difficulty']
         q.frequency       = row['Frequency'].to_i
         q.acceptance_rate = row['Acceptance Rate'].to_f
+        q.topics          = row['Topics']
         q.save!
         puts "[Importer]      ✔️  Saved Q##{q.id}"
       end

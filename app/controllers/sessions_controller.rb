@@ -1,24 +1,21 @@
 # app/controllers/sessions_controller.rb
 class SessionsController < Devise::SessionsController
+    # Skip Rails’ CSRF check for JSON requests so Devise doesn’t blow up trying to set flash on the request
+    skip_before_action :verify_authenticity_token, if: -> { request.format.json? }
+  
     respond_to :json
   
     # POST /users/sign_in.json
     def create
-      self.resource = warden.authenticate!(auth_options)
-      sign_in(resource_name, resource)
-      render json: { id: resource.id, email: resource.email }, status: :ok
+      super do |user|
+        # return just the JSON we want
+        return render json: { id: user.id, email: user.email }
+      end
     end
   
     # DELETE /users/sign_out.json
     def destroy
-      sign_out(resource_name)
-      head :no_content
-    end
-  
-    private
-  
-    def respond_to_on_destroy
-      head :no_content
+      super { head :no_content }
     end
   end
   
