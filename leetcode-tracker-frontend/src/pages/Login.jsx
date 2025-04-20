@@ -1,31 +1,45 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState } from 'react';
+import api from '../api';
 
-export default function Login() {
-  const [email, setEmail] = useState(''), [pw,setPw] = useState('')
-  const nav = useNavigate()
+export default function Login({ onLogin }) {
+  const [email, setEmail] = useState(''), [password, setPassword] = useState('');
 
   const submit = e => {
-    e.preventDefault()
-    fetch('/users/sign_in.json', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      credentials:'include',
-      body: JSON.stringify({ user:{ email, password: pw } })
-    })
-    .then(r=>r.ok?nav('/') : alert('Login failed'))
-  }
+    e.preventDefault();
+    api.post('/users/sign_in.json', {
+      user: { email, password }
+    }).then(r => {
+      onLogin(r.data);
+    }).catch(() => {
+      alert('Login failed');
+    });
+  };
 
   return (
-    <form onSubmit={submit} className="max-w-md mx-auto mt-20 space-y-4">
-      <h1 className="text-2xl">Login</h1>
-      <input type="email" required placeholder="Email" value={email}
-        onChange={e=>setEmail(e.target.value)}
-        className="w-full p-2 rounded bg-gray-100 dark:bg-gray-700" />
-      <input type="password" required placeholder="Password" value={pw}
-        onChange={e=>setPw(e.target.value)}
-        className="w-full p-2 rounded bg-gray-100 dark:bg-gray-700" />
-      <button className="px-4 py-2 bg-green-600 text-white rounded">Login</button>
-    </form>
-  )
+    <div className="h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
+      <form
+        onSubmit={submit}
+        className="bg-white dark:bg-gray-800 p-6 rounded shadow"
+      >
+        <h2 className="text-xl mb-4">Login</h2>
+        <input
+          type="email"
+          placeholder="Email"
+          className="w-full mb-2 p-2 bg-gray-100 dark:bg-gray-700"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          className="w-full mb-4 p-2 bg-gray-100 dark:bg-gray-700"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+        />
+        <button className="w-full py-2 bg-blue-500 text-white rounded">
+          Sign In
+        </button>
+      </form>
+    </div>
+  );
 }
