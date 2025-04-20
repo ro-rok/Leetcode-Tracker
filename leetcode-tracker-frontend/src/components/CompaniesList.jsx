@@ -1,27 +1,27 @@
 // src/components/CompaniesList.jsx
 import React, { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
 import api from '../api'
 
 export default function CompaniesList({ onSelect, selected }) {
-  const [list, setList] = useState([])
-  const nav = useNavigate()
+  const [companies, setCompanies] = useState([])
 
   useEffect(() => {
     api.get('/companies.json')
-      .then(r => setList(r.data))
-      .catch(() => setList([]))
+      .then(res => setCompanies(res.data))
+      .catch(console.error)
   }, [])
 
   return (
     <ul>
-      {list.map(c => (
-        <li key={c.id}>
+      {companies.map(c => (
+        <li key={c.id} className="mb-1">
           <button
-            onClick={() => { onSelect(c); nav(`/companies/${c.id}`) }}
-            className={`w-full text-left px-2 py-1 rounded ${
-              selected === c.id ? 'bg-blue-400 text-white' : 'hover:bg-blue-200 dark:hover:bg-blue-600'
+            className={`w-full text-left p-2 rounded ${
+              selected === c.id
+                ? 'bg-blue-200 dark:bg-blue-600 font-bold'
+                : 'hover:bg-gray-200 dark:hover:bg-gray-700'
             }`}
+            onClick={() => onSelect(c)}
           >
             {c.name}
           </button>
