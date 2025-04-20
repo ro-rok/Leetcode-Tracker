@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import api from '../api'
 
 export default function RandomPanel({ company }) {
   const [form, setForm] = useState({ timeframe:'30_days', difficulty:'EASY', topics:'' })
@@ -6,10 +7,10 @@ export default function RandomPanel({ company }) {
 
   const fetchRandom = () => {
     if (!company) return
-    const q = new URLSearchParams({ ...form })
-    fetch(`/companies/${company.id}/questions/random.json?${q}`, { credentials:'include' })
-      .then(r=>r.status===204?null:r.json())
-      .then(setResult)
+        const params = { ...form }
+        api.get(`/companies/${company.id}/questions/random.json`, { params })
+          .then(r => setResult(r.status === 204 ? null : r.data))
+          .catch(console.error)
   }
 
   return (
