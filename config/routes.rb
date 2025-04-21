@@ -1,13 +1,13 @@
 Rails.application.routes.draw do
   devise_for :users,
-             controllers: {
-               sessions:      'sessions',
-               registrations: 'registrations'
-             },
-             defaults: { format: :json }
+    skip: [:sessions],
+    controllers: { registrations: 'registrations' },
+    defaults: { format: :json }
 
   devise_scope :user do
-    get '/users/current', to: 'sessions#current', defaults: { format: :json }
+    post   '/users/sign_in',   to: 'sessions#create',  defaults: { format: :json }
+    delete '/users/sign_out',  to: 'sessions#destroy', defaults: { format: :json }
+    get    '/users/current',   to: 'sessions#current', defaults: { format: :json }
   end
 
   post 'users/reset_progress', to: 'users#reset_progress', defaults: { format: :json }

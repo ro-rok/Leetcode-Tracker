@@ -13,17 +13,27 @@ export default function LoginSignupForm({ onAuth, onClose }) {
     e.preventDefault();
     setError(null);
     try {
-      const payload = { user: { email, password } };
-      if (mode==='signup') payload.user.password_confirmation = pwConfirm;
-
-      const url = mode==='login'
-        ? '/users/sign_in.json'
-        : '/users.json';
-      const res = await api.post(url, payload);
-      onAuth(res.data);
-    } catch (e) {
-      setError(mode==='login' ? 'Login failed' : 'Signup failed');
-    }
+        // Post the normal Devise‐style payload
+        const url = mode === 'login'
+          ? '/users/sign_in.json'
+          : '/users.json';
+  
+        const payload = {
+          user: {
+            email,
+            password,
+            // only include pwConfirm on sign up
+            ...(mode === 'signup' && { password_confirmation: pwConfirm })
+          }
+        };
+        const res = await api.post(url, payload);
+        onAuth(res.data);
+      } catch (err) {
+        const msg = err.response?.data?.errors?.join(', ')
+                  || err.response?.data?.error
+                  || (mode === 'login' ? 'Login failed' : 'Signup failed');
+        setError(msg);
+      }
   };
 
   return (
