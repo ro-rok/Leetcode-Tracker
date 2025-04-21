@@ -45,6 +45,9 @@ gem "faraday"
 # Scrape question text if user leaves it blank
 gem "nokogiri"
 
+# Handle HTTP requests and responses 
+gem 'http'
+
 # Rate‑limit the AI endpoint
 gem "rack-attack"
 
