@@ -26,9 +26,15 @@ class GithubCsvImporter
       puts "[Importer] 📥 Fetching #{tf} → #{url}"
 
       begin
-        csv_text = URI.open(url).read
+        csv_text = URI.open(url, open_timeout: 10, read_timeout: 60).read
       rescue OpenURI::HTTPError
-        puts "[Importer] ⚠️  #{fname} not found"
+        puts "[Importer] ⚠️  #{fname} not found (HTTP 404)"
+        next
+      rescue Timeout::Error, Errno::ETIMEDOUT => e
+        puts "[Importer] ⚠️  Timeout fetching #{fname}: #{e.message}"
+        next
+      rescue StandardError => e
+        puts "[Importer] ⚠️  Error fetching #{fname}: #{e.class} – #{e.message}"
         next
       end
 
