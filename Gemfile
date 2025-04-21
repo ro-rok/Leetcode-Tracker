@@ -39,6 +39,15 @@ gem "thruster", require: false
 # Use Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin Ajax possible
 gem "rack-cors"
 
+# HTTP client for AI21 calls
+gem "faraday"
+
+# Scrape question text if user leaves it blank
+gem "nokogiri"
+
+# Rate‑limit the AI endpoint
+gem "rack-attack"
+
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
