@@ -6,10 +6,9 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     proxy: {
-      // proxy any request starting with /companies, /questions or /users
-      '/companies': 'http://localhost:3000',
-      '/questions': 'http://localhost:3000',
-      '/users':     'http://localhost:3000'
+      '/companies': process.env.VITE_API_URL,
+      '/questions': process.env.VITE_API_URL,
+      '/users':     process.env.VITE_API_URL
     }
   }
 })
