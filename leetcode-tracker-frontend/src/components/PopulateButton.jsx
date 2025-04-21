@@ -1,18 +1,30 @@
+import { useState } from 'react';
 import api from '../api';
 
 export default function PopulateButton({ companyId }) {
-  const runImport = () => {
-    api.post(`/companies/${companyId}/refresh`)
-      .then(() => alert('Import kicked off!'))
-      .catch(e => alert('Import failed: ' + e.message));
+  const [busy, setBusy] = useState(false);
+
+  const run = async () => {
+    setBusy(true);
+    try {
+      await api.post(`/companies/${companyId}/refresh`);
+      alert('Import kicked off!');
+    } catch(e) {
+      alert('Import failed');
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
     <button
-      className="px-3 py-1 bg-yellow-500 text-white rounded"
-      onClick={runImport}
+      onClick={run}
+      disabled={busy}
+      className={`px-3 py-1 rounded ${
+        busy ? 'bg-yellow-300' : 'bg-yellow-500 hover:bg-yellow-600'
+      } text-gray-900`}
     >
-      Populate
+      {busy ? '…' : 'Populate'}
     </button>
   );
 }
