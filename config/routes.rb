@@ -22,5 +22,6 @@ Rails.application.routes.draw do
   resources :questions, only: [] do
     post   :solve,   on: :member
     delete :solve,   on: :member, action: :unsolve
+    post   :chat,    on: :member, controller: 'chats'
   end
 end
