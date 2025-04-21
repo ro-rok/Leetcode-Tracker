@@ -23,6 +23,7 @@ export default function App() {
   const [randomQ, setRandomQ] = useState(null)
   const [loading, setLoading] = useState(false)
   const [modal, setModal] = useState(null)
+  const [chatQ, setChatQ] = useState(null);
 
   // load current user + companies
   useEffect(() => {
@@ -245,6 +246,7 @@ export default function App() {
                     qs.map(q => q.id === id ? { ...q, solved: false } : q)
                   )
                 }}
+                onChat={q=>setChatQ(q)}
               />
             )}
 
@@ -258,6 +260,12 @@ export default function App() {
         question={modal?.question}
         onClose={finishSolve}
       />
+
+    <ChatModal
+      open={!!chatQ}
+      question={chatQ}
+      onClose={closeChat}
+    />
 
       {showAuth && (
         <LoginSignupForm

@@ -1,4 +1,4 @@
-export default function QuestionList({ questions, onSolve, onUnsolve }) {
+export default function QuestionList({ questions, onSolve, onUnsolve, onChat }) {
   return (
     <div className="space-y-3">
       {questions.length === 0
@@ -26,6 +26,12 @@ export default function QuestionList({ questions, onSolve, onUnsolve }) {
                 Solve
               </button>
             )}
+              <button
+                className="ml-2 mt-2 px-3 py-1 bg-orange-600 rounded"
+                onClick={()=>onChat(q)}
+              >
+                Ask AI
+              </button>
           </div>
       ))}
     </div>
