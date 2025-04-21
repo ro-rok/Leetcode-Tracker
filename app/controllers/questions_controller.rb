@@ -26,33 +26,29 @@ class QuestionsController < ApplicationController
   # GET /companies/:company_id/questions/random
   def random
     company = Company.find(params[:company_id])
-
-    # MUST have a timeframe filter
-    scope = company.questions.where(timeframe: params[:timeframe])
-
-    # only filter difficulty if provided
+    timeframe = params[:timeframe].presence || '30_days'
+  
+    scope = company.questions.where(timeframe: timeframe)
+  
     if params[:difficulty].present?
       scope = scope.where(difficulty: params[:difficulty].upcase)
     end
-
-    # only filter topics if provided
+  
     if params[:topics].present?
       scope = scope.where("topics LIKE ?", "%#{params[:topics]}%")
     end
-
-    # exclude already‑solved
+  
     if user_signed_in?
       solved = current_user.user_questions.where(solved: true).pluck(:question_id)
       scope = scope.where.not(id: solved)
     end
-
+  
     question = scope.order(Arel.sql("RANDOM()")).first
     return head :no_content unless question
-
-    render json: question.slice(
-      :id, :title, :link, :difficulty, :frequency, :topics
-    )
+  
+    render json: question.slice(:id, :title, :link, :difficulty, :frequency, :topics)
   end
+  
 
   # POST /questions/:id/solve
   def solve

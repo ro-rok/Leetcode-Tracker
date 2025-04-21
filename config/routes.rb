@@ -1,21 +1,26 @@
 Rails.application.routes.draw do
-  devise_for :users, controllers: { sessions: 'sessions' }, defaults: { format: :json }
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
+  devise_for :users,
+             controllers: {
+               sessions:      'sessions',
+               registrations: 'registrations'
+             },
+             defaults: { format: :json }
 
-  # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
-  # Can be used by load balancers and uptime monitors to verify that the app is live.
-  get "up" => "rails/health#show", as: :rails_health_check 
-  resources :companies, only: %i[index show], defaults: { format: :json } do
+  devise_scope :user do
+    get '/users/current', to: 'sessions#current', defaults: { format: :json }
+  end
+
+  post 'users/reset_progress', to: 'users#reset_progress', defaults: { format: :json }
+
+  resources :companies, only: %i[index show] do
     resources :questions, only: [:index] do
       get :random, on: :collection
     end
-    post :refresh, on: :member, defaults: { format: :json }
+    post :refresh, on: :member
   end
 
   resources :questions, only: [] do
     post   :solve,   on: :member
     delete :solve,   on: :member, action: :unsolve
   end
-  # Defines the root path route ("/")
-  # root "posts#index"
 end
