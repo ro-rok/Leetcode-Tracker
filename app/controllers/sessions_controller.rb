@@ -1,21 +1,23 @@
-# app/controllers/sessions_controller.rb
 class SessionsController < Devise::SessionsController
-    # Skip Rails’ CSRF check for JSON requests so Devise doesn’t blow up trying to set flash on the request
-    skip_before_action :verify_authenticity_token, if: -> { request.format.json? }
-  
-    respond_to :json
-  
-    # POST /users/sign_in.json
-    def create
-      super do |user|
-        # return just the JSON we want
-        return render json: { id: user.id, email: user.email }
-      end
-    end
-  
-    # DELETE /users/sign_out.json
-    def destroy
-      super { head :no_content }
+  respond_to :json
+  skip_before_action :verify_authenticity_token, raise: false
+
+  # GET /users/current.json
+  def current
+    if current_user
+      render json: { id: current_user.id, email: current_user.email }
+    else
+      head :unauthorized
     end
   end
-  
+
+  private
+
+  def respond_with(resource, _opts = {})
+    render json: { id: resource.id, email: resource.email }
+  end
+
+  def respond_to_on_destroy
+    head :no_content
+  end
+end
