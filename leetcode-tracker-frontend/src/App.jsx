@@ -102,8 +102,6 @@ export default function App() {
     const { question } = modal
     if (solved) {
       await api.post(`/questions/${question.id}/solve.json`)
-    } else {
-      await api.delete(`/questions/${question.id}/solve.json`)
     }
     // update in list
     setQuestions(qs =>
