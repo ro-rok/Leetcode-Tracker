@@ -17,6 +17,7 @@ Rails.application.routes.draw do
       get :random, on: :collection
     end
     post :refresh, on: :member
+    get :topics, on: :member
   end
 
   resources :questions, only: [] do
