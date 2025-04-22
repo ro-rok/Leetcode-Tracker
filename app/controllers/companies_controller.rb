@@ -24,5 +24,12 @@ class CompaniesController < ApplicationController
       RefreshCsvJob.perform_later(company.id)
       head :accepted
     end
+
+    def topics
+      company = Company.find(params[:id])
+      topic_list = company.questions.distinct.pluck(:topics).compact
+      unique_topics = topic_list.flat_map { |t| t.split(',') }.map(&:strip).uniq.sort
+      render json: unique_topics
+    end
   end
   
