@@ -25,6 +25,14 @@ export default function App() {
   const [loading, setLoading] = useState(false)
   const [modal, setModal] = useState(null)
   const [chatQ, setChatQ] = useState(null);
+  const [topics, setTopics] = useState([]);
+
+  useEffect(() => {
+    if (!company) return;
+    api.get(`/companies/${company.id}/topics.json`)
+      .then(r => setTopics(r.data))
+      .catch(() => setTopics([]));
+  }, [company]);
 
   // load current user + companies
   useEffect(() => {
@@ -194,6 +202,7 @@ export default function App() {
               setFilters={setFilters}
               onFetch={fetchQuestions}
               onRandom={getRandom}
+              topics={topics}
             />
 
             {loading && (
