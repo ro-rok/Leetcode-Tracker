@@ -40,7 +40,7 @@ class ChatsController < ApplicationController
       - Provide a correct code if needed
       - Explain the solution with time and space complexity
       - If a more optimal solution exists, provide that too
-      - Walk through the solution step by step
+      - Walk through the solution step by step with an example
       - Explain time and space complexity
       - Include brief conceptual insights if useful
     USER
