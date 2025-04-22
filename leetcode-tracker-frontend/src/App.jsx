@@ -9,6 +9,7 @@ import Filters from './components/Filters'
 import PopulateButton from './components/PopulateButton'
 import QuestionList from './components/QuestionList'
 import SolveModal from './components/SolveModal'
+import ChatModal from './components/ChatModal'
 
 export default function App() {
   const [user, setUser] = useState(null)
@@ -137,6 +138,11 @@ export default function App() {
             .then(r => setQuestions(r.data))
             .finally(() => setLoading(false))
           }
+  }
+
+  // close chat modal
+  const closeChat = () => {
+    setChatQ(null)
   }
 
   return (
