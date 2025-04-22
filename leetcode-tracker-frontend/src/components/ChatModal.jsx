@@ -139,7 +139,7 @@ export default function ChatModal({ open, question, onClose }) {
         <div className="mt-3 flex gap-2">
           <textarea
             rows={1}
-            className="flex-1 p-2 rounded bg-zinc-800 resize-y min-h-[48px] max-h-[160px] text-sm"
+            className="flex-1 p-2 rounded bg-zinc-800 resize-y min-h-[48px] max-h-[3px] text-sm"
             value={input}
             onChange={e => setInput(e.target.value)}
             placeholder="Paste code or ask a question…"
