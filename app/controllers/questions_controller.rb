@@ -5,24 +5,34 @@ class QuestionsController < ApplicationController
   # GET /companies/:company_id/questions
   def index
     company = Company.find(params[:company_id])
-    qs = company.questions
-                .where(timeframe: params[:timeframe])
-                .select(:id, :title, :link, :difficulty, :frequency, :acceptance_rate, :topics)
-
-    render json: qs.map { |q|
+    scope = company.questions.where(timeframe: params[:timeframe])
+  
+    # ✅ Add filters if present
+    if params[:difficulty].present?
+      scope = scope.where(difficulty: params[:difficulty].upcase)
+    end
+  
+    if params[:topics].present?
+      # Allow matching ANY topic in comma-separated list
+      topics = params[:topics].split(',').map(&:strip)
+      topics_query = topics.map { |t| "topics LIKE ?" }.join(' OR ')
+      scope = scope.where(topics_query, *topics.map { |t| "%#{t}%" })
+    end
+  
+    render json: scope.select(:id, :title, :link, :difficulty, :frequency, :acceptance_rate, :topics).map { |q|
       {
-        id:         q.id,
-        title:      q.title,
-        link:       q.link,
+        id: q.id,
+        title: q.title,
+        link: q.link,
         difficulty: q.difficulty,
-        frequency:  q.frequency,
+        frequency: q.frequency,
         acceptance_rate: q.acceptance_rate,
-        topics:     q.topics,
-        solved:     current_user&.solved_questions&.exists?(q.id) || false
+        topics: q.topics,
+        solved: current_user&.solved_questions&.exists?(q.id) || false
       }
     }
   end
-
+  
   # GET /companies/:company_id/questions/random
   def random
     company = Company.find(params[:company_id])
