@@ -51,6 +51,13 @@ gem 'http'
 # Rate‑limit the AI endpoint
 gem "rack-attack"
 
+# Dotenv for loading environment variables from .env files
+gem "dotenv-rails", groups: [:development, :test]
+
+gem "httpx"        
+
+gem "faraday-retry"
+
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
