@@ -22,6 +22,7 @@ Rails.application.routes.draw do
   resources :questions, only: [] do
     post   :solve,   on: :member
     delete :solve,   on: :member, action: :unsolve
-    post   :chat,    on: :member, controller: 'chats'
+    post :chat, on: :member, to: 'chats#create', defaults: { format: :json }
+    get  :chat, to: proc { [405, {}, ['Method Not Allowed']] }
   end
 end
