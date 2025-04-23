@@ -52,7 +52,7 @@ export default function ChatModal({ open, question, onClose }) {
 
     while (attempt < maxRetries && !success) {
       try {
-        const res = await api.post(`/questions/${question.id}/chat.json`, { message: userMsg });
+        const res = await api.post(`/questions/${question.id}/chat.json`, { message: userMsg, credentials: "include", });
         if (res.data.reply) {
           setHistory(h => [...h, { from: 'ai', text: res.data.reply }]);
         }
