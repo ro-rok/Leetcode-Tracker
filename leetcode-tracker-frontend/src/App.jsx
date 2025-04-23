@@ -9,7 +9,6 @@ import QuestionList from './components/QuestionList'
 import SolveModal from './components/SolveModal'
 import ChatModal from './components/ChatModal'
 import RandomQuestionCard from './components/RandomQuestion'
-import LoadingTerminal from './components/LoaderTerminal'
 import Homepage from './components/Homepage'
 
 function SearchBar({ value, onChange }) {
@@ -107,9 +106,7 @@ export default function App() {
     api.get(`/companies/${company.id}/questions.json`, {
       params: {
         timeframe: activeTab,
-        difficulty: filters.difficulty.join(','),
-        topics: filters.topics.join(',')
-      }
+        difficulty: filters.difficulty.join(',')}
     })
     .then(r => setQuestions(r.data))
     .catch(() => setQuestions([]))
@@ -144,7 +141,7 @@ export default function App() {
   const finishSolve = async solved => {
     const { question } = modal
     if (solved) {
-      await api.post(`/questions/${question.id}/solve.json`)
+      await api.post(`/questions/${question.id}/solve.json?user_id=${user.id}`)
     }
     setQuestions(qs =>
       qs.map(x => x.id === question.id ? { ...x, solved } : x)
@@ -164,7 +161,7 @@ export default function App() {
   const resetProgress = async () => {
     if (!user) return setShowAuth(true)
     if (!confirm('Reset all progress for this company?')) return
-    await api.post('/users/reset_progress.json', { company_id: company.id })
+    await api.post('/users/reset_progress.json', { company_id: company.id, user_id: user.id })
     fetchQuestions()
   }
 
@@ -235,8 +232,6 @@ export default function App() {
               topics={topics}
             />
 
-            {loading && <LoadingTerminal className="mt-6" />}
-
             {randomQ && !loading && (
               <RandomQuestionCard
                 question={randomQ}
@@ -248,7 +243,7 @@ export default function App() {
 
             {user && (
               <button
-                className="mb-2 text-sm underline"
+                className="mb-2 text-sm underline text-red-500 hover:text-red-400"
                 onClick={resetProgress}
               >Reset Progress</button>
             )}
@@ -258,7 +253,7 @@ export default function App() {
                 questions={questions}
                 onSolve={startSolve}
                 onUnsolve={id => {
-                  api.delete(`/questions/${id}/solve.json`)
+                  api.delete(`/questions/${id}/solve.json?user_id=${user.id}`)
                   setQuestions(qs =>
                     qs.map(q => q.id === id ? { ...q, solved: false } : q)
                   )
