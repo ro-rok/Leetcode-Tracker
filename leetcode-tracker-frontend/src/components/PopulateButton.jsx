@@ -18,7 +18,7 @@ export default function PopulateButton({ companyId, onRefresh }) {
           await onRefresh();
           toast.success('Questions refreshed!');
         }
-      }, 500);
+      }, 3000);
     } catch (e) {
       toast.error('Import failed. Please try again later.');
     } finally {
