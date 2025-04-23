@@ -14,6 +14,7 @@ Bundler.require(*Rails.groups)
 module LeetcodeTracker
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
+    config.middleware.use ActionDispatch::Flash
     config.load_defaults 8.0
     config.middleware.use ActionDispatch::Cookies
     config.middleware.use ActionDispatch::Session::CookieStore
