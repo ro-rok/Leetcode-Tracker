@@ -48,8 +48,9 @@ export default function QuestionList({ questions, onSolve, onUnsolve, onChat }) 
   if (!questions || questions.length === 0) {
     return (
       <div className="col-span-full text-center mt-6 text-gray-400 text-sm">
-        <p className="mb-2">🚫 <span className="font-semibold">No questions available for this filter.</span></p>
+        <p className="mb-2">🚫 <span className="font-semibold">No questions available for this filter or company.</span></p>
         <p className="mb-1">Try using the <span className="text-yellow-400 font-medium">Populate</span> button, or switch tabs/timeframes.</p>
+        <p className="mb-1">If populating, it may take a few seconds to load. Please be patient or click the <span className="text-blue-400 font-medium">Refresh</span> button.</p>
       </div>
     );
   }
