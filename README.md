@@ -1,26 +1,3 @@
-<!-- Add custom styling -->
-<style>
-    body { 
-        font-family: Arial, sans-serif; 
-        line-height: 1.6; 
-        margin: 0; 
-        padding: 20px; 
-        background: #000; /* Black background */
-        color: #f9f9f9; /* Light text for contrast */
-    }
-    h1 { color:rgb(109, 148, 187); text-align: center; margin-bottom: 0.5em; }
-    h2 { color:rgb(88, 123, 158); margin-top: 1.5em; }
-    p, li { color: #f9f9f9; }
-    .logo { display: block; margin: 0 auto 1em auto; max-width: 200px; }
-    /* Optional: adjust blockquotes for readability */
-    blockquote { 
-        border-left: 4px solid #ccc;
-        margin: 1em 0;
-        padding-left: 1em;
-        color: #f9f9f9;
-    }
-</style>
-
 # GrindMate.AI
 
 <!-- Center the logo -->
