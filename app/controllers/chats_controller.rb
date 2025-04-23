@@ -17,13 +17,14 @@ class ChatsController < ApplicationController
   Rails.logger.info "🔐 Current User: #{current_user&.email || '[None]'}"
 
 
-  # Ensure the API key is set
-  unless ENV['GROQ_API_KEY']
-    Rails.logger.error "❌ Missing GROQ_API_KEY in environment variables"
-    raise "GROQ_API_KEY is not set. Please set it in your environment variables."
-  end
+ 
 
   def create
+     # Ensure the API key is set
+    unless ENV['GROQ_API_KEY']
+      Rails.logger.error "❌ Missing GROQ_API_KEY in environment variables"
+      raise "GROQ_API_KEY is not set. Please set it in your environment variables."
+    end
     question = Question.find(params[:id])
     user_msg = params[:message].presence
     question_text = params[:question_text].presence || scrape_question_text(question.link)
