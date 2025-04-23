@@ -1,15 +1,54 @@
 import { useState, useEffect } from 'react'
 import api from './api'
 import LoginSignupForm from './components/LoginSignupForm'
-import SearchBar from './components/SearchBar'
 import LogoutButton from './components/LogoutButton'
-import CompaniesList from './components/CompaniesList'
 import TabNav from './components/TabNav'
 import Filters from './components/Filters'
 import PopulateButton from './components/PopulateButton'
 import QuestionList from './components/QuestionList'
 import SolveModal from './components/SolveModal'
 import ChatModal from './components/ChatModal'
+import RandomQuestionCard from './components/RandomQuestion'
+import LoadingTerminal from './components/LoaderTerminal'
+import Homepage from './components/Homepage'
+
+function SearchBar({ value, onChange }) {
+  return (
+    <input
+      type="text"
+      placeholder="Search companies..."
+      className="w-full px-3 py-2 mb-4 rounded-md bg-zinc-800 text-sm text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+    />
+  );
+}
+
+function CompaniesList({ companies, selected, onSelect, favorites, onToggleFav }) {
+  return (
+    <ul className="space-y-1 overflow-y-auto h-[calc(100vh-150px)] pr-1 sm:scrollbar-thin sm:scrollbar-thumb-zinc-700 sm:scrollbar-track-zinc-900 custom-scroll">
+      {companies.map(c => (
+        <li key={c.id} className="group flex items-center justify-between px-2 py-1 rounded-md hover:bg-zinc-800 transition-all cursor-pointer">
+          <button
+            className={`flex-1 text-left truncate text-sm font-medium transition-colors duration-150 ${
+              selected?.id === c.id ? 'text-blue-400 font-semibold' : 'text-gray-300 group-hover:text-white'
+            }`}
+            onClick={() => onSelect(c)}
+          >
+            {c.name}
+          </button>
+          <button
+            onClick={() => onToggleFav(c.id)}
+            className="text-yellow-400 text-sm hover:scale-110 transform transition-transform"
+            aria-label="Toggle favorite"
+          >
+            {favorites.includes(c.id) ? '★' : '☆'}
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 export default function App() {
   const [user, setUser] = useState(null)
@@ -26,6 +65,7 @@ export default function App() {
   const [modal, setModal] = useState(null)
   const [chatQ, setChatQ] = useState(null);
   const [topics, setTopics] = useState([]);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (!company) return;
@@ -34,7 +74,6 @@ export default function App() {
       .catch(() => setTopics([]));
   }, [company]);
 
-  // load current user + companies
   useEffect(() => {
     api.get('/users/current.json')
       .then(r => setUser(r.data))
@@ -42,7 +81,6 @@ export default function App() {
     api.get('/companies.json').then(r => setCompanies(r.data))
   }, [])
 
-  // sort + search + favorites
   const shownCompanies = (() => {
     const filtered = companies.filter(c =>
       c.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -62,7 +100,6 @@ export default function App() {
     localStorage.setItem('favs', JSON.stringify(next))
   }
 
-  // FETCH QUESTIONS whenever company or timeframe tabs change
   const fetchQuestions = () => {
     if (!company) return
     setLoading(true)
@@ -79,12 +116,10 @@ export default function App() {
     .finally(() => setLoading(false))
   }
 
-  // fetch on tab or company change
   useEffect(() => {
     fetchQuestions()
   }, [company, activeTab])
 
-  // RANDOM QUESTION on demand
   const getRandom = () => {
     if (!company) return
     setLoading(true)
@@ -100,20 +135,17 @@ export default function App() {
     .finally(() => setLoading(false))
   }
 
-  // start solving
   const startSolve = q => {
     if (!user) return setShowAuth(true)
     window.open(q.link, '_blank')
     setModal({ question: q, shown: false })
   }
 
-  // finish solve/unsolve via modal
   const finishSolve = async solved => {
     const { question } = modal
     if (solved) {
       await api.post(`/questions/${question.id}/solve.json`)
     }
-    // update in list
     setQuestions(qs =>
       qs.map(x => x.id === question.id ? { ...x, solved } : x)
     )
@@ -123,79 +155,77 @@ export default function App() {
     setModal(null)
   }
 
-  // direct unsolve from random card
   const unSolveRandom = async () => {
     if (!randomQ) return
     await api.delete(`/questions/${randomQ.id}/solve.json`)
     setRandomQ(r => r ? { ...r, solved: false } : null)
   }
 
-  // reset progress
   const resetProgress = async () => {
     if (!user) return setShowAuth(true)
     if (!confirm('Reset all progress for this company?')) return
     await api.post('/users/reset_progress.json', { company_id: company.id })
-    if (activeTab === 'random') {
-            getRandom()
-          } else {
-            // fetch list again
-            setLoading(true)
-            api.get(`/companies/${company.id}/questions.json`, {
-              params: { timeframe: activeTab, difficulty: filters.difficulty.join(','), topics: filters.topics.join(',') }
-            })
-            .then(r => setQuestions(r.data))
-            .finally(() => setLoading(false))
-          }
+    fetchQuestions()
   }
 
-  // close chat modal
   const closeChat = () => {
     setChatQ(null)
   }
 
   return (
-    <div className="h-screen flex bg-gray-900 text-white">
-      <aside className="w-72 p-4 border-r border-gray-700">
+    <div className="h-screen flex flex-col sm:flex-row bg-black text-white">
+      <aside className={`sm:w-72 w-full sm:block ${sidebarOpen ? 'block' : 'hidden'} sm:border-r border-gray-700 bg-gray-950 p-4 transition-all duration-300 z-40 sm:z-auto`}> 
+        <div className="flex items-center justify-between mb-4 sm:hidden">
+          <h2 className="text-xl font-bold pl-14">Companies</h2>
+          <button
+            className="text-sm text-gray-400 hover:text-white"
+            onClick={() => setSidebarOpen(false)}
+          >✕</button>
+        </div>
+
         <div className="mb-4">
           {user ? (
-            <>
-              <span className="font-medium">{user.email.split('@')[0]}</span>
-              <LogoutButton onLogout={()=>{
+            <div className="flex flex-col gap-2">
+              <span className="font-medium text-sm">👤 {user.email.split('@')[0]}</span>
+              <LogoutButton onLogout={() => {
                 api.delete('/users/sign_out.json')
                 setUser(null)
-              }}/>
-            </>
+              }} />
+            </div>
           ) : (
             <button
               className="px-3 py-1 bg-blue-600 rounded"
-              onClick={()=>setShowAuth(true)}
-            >
-              Login / Sign Up
-            </button>
+              onClick={() => setShowAuth(true)}
+            >Login / Sign Up</button>
           )}
         </div>
 
-        <SearchBar value={searchTerm} onChange={setSearchTerm}/>
+        <SearchBar value={searchTerm} onChange={setSearchTerm} />
         <CompaniesList
           companies={shownCompanies}
           selected={company}
-          onSelect={c=>{ setCompany(c); setActiveTab('30_days') }}
+          onSelect={c => { setCompany(c); setActiveTab('30_days'); setSidebarOpen(false); }}
           favorites={favorites}
           onToggleFav={toggleFav}
         />
       </aside>
 
-      <main className="flex-1 p-6 overflow-y-auto">
+      <main className="flex-1 p-6 overflow-y-auto relative scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-zinc-900">
+        <button
+          className="sm:hidden fixed top-4 left-4 z-50 bg-gray-800 text-white px-3 py-1 rounded shadow"
+          onClick={() => setSidebarOpen(true)}
+        >☰</button>
+
         {!company ? (
-          <p className="text-center mt-20">Please select a company.</p>
+          <Homepage />
         ) : (
           <>
             <div className="flex items-center justify-between mb-4">
-              <h1 className="text-3xl">{company.name}</h1>
-              <PopulateButton companyId={company.id}/>
+              <h1 className="text-3xl font-bold ml-10 sm:ml-0">{company.name}</h1>
+              <PopulateButton companyId={company.id} onRefresh={fetchQuestions} />
             </div>
 
-            <TabNav active={activeTab} onChange={setActiveTab}/>
+            <TabNav active={activeTab} onChange={setActiveTab} />
 
             <Filters
               filters={filters}
@@ -205,52 +235,24 @@ export default function App() {
               topics={topics}
             />
 
-            {loading && (
-              <div className="text-center mt-6">Loading…</div>
-            )}
+            {loading && <LoadingTerminal className="mt-6" />}
 
-            {/* RANDOM CARD */}
             {randomQ && !loading && (
-              <div className="mb-6 p-4 bg-gray-800 rounded">
-                <a
-                  href={randomQ.link}
-                  target="_blank"
-                  className="underline text-lg text-yellow-300"
-                >
-                  {randomQ.title}
-                </a>
-                <div className="mt-2">
-                  {randomQ.difficulty} · freq: {randomQ.frequency}
-                </div>
-                {randomQ.solved ? (
-                  <button
-                    onClick={unSolveRandom}
-                    className="mt-2 bg-red-600 px-3 py-1 rounded"
-                  >
-                    Unsolve
-                  </button>
-                ) : (
-                  <button
-                    onClick={()=>startSolve(randomQ)}
-                    className="mt-2 bg-blue-600 px-3 py-1 rounded"
-                  >
-                    Solve
-                  </button>
-                )}
-              </div>
+              <RandomQuestionCard
+                question={randomQ}
+                onSolve={startSolve}
+                onUnsolve={unSolveRandom}
+                onChat={q => setChatQ(q)}
+              />
             )}
 
-            {/* only show reset if logged in */}
             {user && (
               <button
                 className="mb-2 text-sm underline"
                 onClick={resetProgress}
-              >
-                Reset Progress
-              </button>
+              >Reset Progress</button>
             )}
 
-            {/* QUESTION LIST */}
             {!loading && (
               <QuestionList
                 questions={questions}
@@ -261,11 +263,9 @@ export default function App() {
                     qs.map(q => q.id === id ? { ...q, solved: false } : q)
                   )
                 }}
-                onChat={q=>setChatQ(q)}
+                onChat={q => setChatQ(q)}
               />
             )}
-
-            
           </>
         )}
       </main>
@@ -276,11 +276,11 @@ export default function App() {
         onClose={finishSolve}
       />
 
-    <ChatModal
-      open={!!chatQ}
-      question={chatQ}
-      onClose={closeChat}
-    />
+      <ChatModal
+        open={!!chatQ}
+        question={chatQ}
+        onClose={closeChat}
+      />
 
       {showAuth && (
         <LoginSignupForm
