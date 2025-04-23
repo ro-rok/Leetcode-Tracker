@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import ChatModal from './ChatModal';
+import { FaCheck, FaTimes, FaRobot } from 'react-icons/fa';
 
 export default function SolveModal({ open, question, onClose }) {
   const [showAI, setShowAI] = useState(false);
@@ -35,17 +36,19 @@ export default function SolveModal({ open, question, onClose }) {
                 onClick={() => onClose(true)}
                 onMouseEnter={() => setHoveredButton('yes')}
                 onMouseLeave={() => setHoveredButton(null)}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded transition font-medium text-sm shadow"
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded transition font-medium text-sm shadow flex items-center justify-center"
               >
-                ✅ Yes, Solved
+                <FaCheck className="mr-2" />
+                Yes, Solved
               </button>
               <button
                 onClick={() => onClose(false)}
                 onMouseEnter={() => setHoveredButton('no')}
                 onMouseLeave={() => setHoveredButton(null)}
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 rounded transition font-medium text-sm shadow"
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 rounded transition font-medium text-sm shadow flex items-center justify-center"
               >
-                ❌ No, Not Yet
+                <FaTimes className="mr-2" />
+                No, Not Yet
               </button>
             </div>
 
@@ -55,9 +58,10 @@ export default function SolveModal({ open, question, onClose }) {
               onClick={() => setShowAI(true)}
               onMouseEnter={() => setHoveredButton('ai')}
               onMouseLeave={() => setHoveredButton(null)}
-              className="bg-purple-600 hover:bg-purple-700 text-white w-full py-2 rounded transition font-semibold text-sm shadow"
+              className="bg-purple-600 hover:bg-purple-700 text-white w-full py-2 rounded transition font-semibold text-sm shadow flex items-center justify-center"
             >
-              💬 Ask AI for Help
+              <FaRobot className="mr-2" />
+              Ask AI for Help
             </button>
           </div>
         </motion.div>
