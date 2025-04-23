@@ -1,6 +1,10 @@
 class ApplicationController < ActionController::Base
   protect_from_forgery with: :null_session, unless: -> { request.format.json? }
 
+  def current_user
+    @current_user
+  end
+
   # ✅ Override to fix Devise's `flash=` call issue
   def handle_unverified_request
     self.request.session_options[:skip] = true
