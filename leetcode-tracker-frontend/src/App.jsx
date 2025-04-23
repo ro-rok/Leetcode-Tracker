@@ -227,7 +227,7 @@ export default function App() {
               topics={topics}
             />
 
-            {randomQ && !loading && (
+            {randomQ  && (
               <RandomQuestionCard
                 question={randomQ}
                 onSolve={startSolve}
@@ -244,7 +244,7 @@ export default function App() {
               >Reset Progress</button>
             )}
 
-            {!loading && (
+            
               <QuestionList
                 questions={questions}
                 onSolve={startSolve}
@@ -256,7 +256,7 @@ export default function App() {
                 }}
                 onChat={q => setChatQ(q)}
               />
-            )}
+          
           </>
         )}
       </main>
