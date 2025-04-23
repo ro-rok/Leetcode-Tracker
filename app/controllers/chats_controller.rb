@@ -1,6 +1,6 @@
 class ChatsController < ApplicationController
   skip_before_action :verify_authenticity_token, only: [:create]
-  skip_before_action :authenticate_user!, only: [:create]
+  before_action :authenticate_user!
 
   require 'open-uri'
   require 'json'
@@ -14,6 +14,7 @@ class ChatsController < ApplicationController
     require 'dotenv/load'
   end
 
+  
 
   # Ensure the API key is set
   unless ENV['GROQ_API_KEY']
