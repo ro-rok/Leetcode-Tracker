@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 
-const LoaderWindow = () => {
+const LoadingTerminal = () => {
   return (
     <StyledWrapper>
       <div className="terminal-loader">
@@ -111,4 +111,4 @@ const StyledWrapper = styled.div`
     margin-top: 1.5em;
   }`;
 
-export default LoaderWindow;
+export default LoadingTerminal;
