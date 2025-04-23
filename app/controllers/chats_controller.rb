@@ -14,10 +14,6 @@ class ChatsController < ApplicationController
     require 'dotenv/load'
   end
 
-  Rails.logger.info "🔐 Current User: #{current_user&.email || '[None]'}"
-
-
- 
 
   def create
      # Ensure the API key is set
@@ -25,6 +21,7 @@ class ChatsController < ApplicationController
       Rails.logger.error "❌ Missing GROQ_API_KEY in environment variables"
       raise "GROQ_API_KEY is not set. Please set it in your environment variables."
     end
+    Rails.logger.info "🔐 Current User: #{current_user&.email || '[None]'}"
     question = Question.find(params[:id])
     user_msg = params[:message].presence
     question_text = params[:question_text].presence || scrape_question_text(question.link)
