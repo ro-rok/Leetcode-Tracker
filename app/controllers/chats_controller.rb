@@ -14,7 +14,8 @@ class ChatsController < ApplicationController
     require 'dotenv/load'
   end
 
-  
+  Rails.logger.info "🔐 Current User: #{current_user&.email || '[None]'}"
+
 
   # Ensure the API key is set
   unless ENV['GROQ_API_KEY']

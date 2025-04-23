@@ -304,7 +304,7 @@ Devise.setup do |config|
   # Note: These might become the new default in future versions of Devise.
   config.responder.error_status = :unprocessable_entity
   config.responder.redirect_status = :see_other
-  config.navigational_formats = ['*/*', :html, :json]
+  # config.navigational_formats = ['*/*', :html, :json]
 
 
   # ==> Configuration for :registerable
