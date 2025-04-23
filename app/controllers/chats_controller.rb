@@ -10,7 +10,9 @@ class ChatsController < ApplicationController
   require 'http'
   require 'httpx/adapters/faraday'
   require 'faraday/retry'
-  require 'dotenv/load'
+  if Rails.env.development?
+    require 'dotenv/load'
+  end
 
   # Ensure the API key is set
   unless ENV['GROQ_API_KEY']
@@ -44,6 +46,7 @@ class ChatsController < ApplicationController
       - Explain time and space complexity
       - Include brief conceptual insights if useful
     USER
+    Rails.logger.info "🔑 Using GROQ_API_KEY: #{ENV['GROQ_API_KEY'].present? ? '[SET]' : '[MISSING]'}"
 
     conn = Faraday.new(
       url: "https://api.groq.com/openai/v1/chat/completions",
