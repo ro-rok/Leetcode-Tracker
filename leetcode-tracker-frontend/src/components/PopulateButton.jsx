@@ -2,11 +2,9 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import api from '../api';
 import { toast } from 'react-hot-toast';
-import LoadingTerminal from './LoaderTerminal';
 
 export default function PopulateButton({ companyId, onRefresh }) {
   const [busy, setBusy] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   const run = async () => {
     setBusy(true);
@@ -14,9 +12,14 @@ export default function PopulateButton({ companyId, onRefresh }) {
     try {
       await api.post(`/companies/${companyId}/refresh`);
       toast.success('Import kicked off! Fetching questions...');
-      if (typeof onRefresh === 'function') {
-        await onRefresh();
-      }
+  
+      // Wait for 4 seconds to let the job finish (adjust timing if needed)
+      setTimeout(async () => {
+        if (typeof onRefresh === 'function') {
+          await onRefresh();
+          toast.success('Questions refreshed!');
+        }
+      }, 500);
     } catch (e) {
       toast.error('Import failed. Please try again later.');
     } finally {
@@ -24,6 +27,7 @@ export default function PopulateButton({ companyId, onRefresh }) {
       setLoading(false);
     }
   };
+  
 
   return (
     <StyledWrapper>
@@ -32,7 +36,6 @@ export default function PopulateButton({ companyId, onRefresh }) {
           {busy ? '…' : 'Populate'}
         </span>
       </button>
-      {loading && <LoadingTerminal className="mt-2" />}
     </StyledWrapper>
   );
 }
