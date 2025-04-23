@@ -8,7 +8,6 @@ export default function PopulateButton({ companyId, onRefresh }) {
 
   const run = async () => {
     setBusy(true);
-    setLoading(true);
     try {
       await api.post(`/companies/${companyId}/refresh`);
       toast.success('Import kicked off! Fetching questions...');
@@ -24,10 +23,8 @@ export default function PopulateButton({ companyId, onRefresh }) {
       toast.error('Import failed. Please try again later.');
     } finally {
       setBusy(false);
-      setLoading(false);
     }
   };
-  
 
   return (
     <StyledWrapper>

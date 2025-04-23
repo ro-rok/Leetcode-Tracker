@@ -60,7 +60,6 @@ export default function App() {
   const [filters, setFilters] = useState({ difficulty: [], topics: [] })
   const [questions, setQuestions] = useState([])
   const [randomQ, setRandomQ] = useState(null)
-  const [loading, setLoading] = useState(false)
   const [modal, setModal] = useState(null)
   const [chatQ, setChatQ] = useState(null);
   const [topics, setTopics] = useState([]);
@@ -101,7 +100,6 @@ export default function App() {
 
   const fetchQuestions = () => {
     if (!company) return
-    setLoading(true)
     setRandomQ(null)
     api.get(`/companies/${company.id}/questions.json`, {
       params: {
@@ -110,7 +108,6 @@ export default function App() {
     })
     .then(r => setQuestions(r.data))
     .catch(() => setQuestions([]))
-    .finally(() => setLoading(false))
   }
 
   useEffect(() => {
@@ -119,7 +116,6 @@ export default function App() {
 
   const getRandom = () => {
     if (!company) return
-    setLoading(true)
     api.get(`/companies/${company.id}/questions/random.json`, {
       params: {
         timeframe: activeTab,
@@ -129,7 +125,6 @@ export default function App() {
     })
     .then(r => setRandomQ(r.data))
     .catch(() => setRandomQ(null))
-    .finally(() => setLoading(false))
   }
 
   const startSolve = q => {
@@ -244,6 +239,7 @@ export default function App() {
             {user && (
               <button
                 className="mb-2 text-sm underline text-red-500 hover:text-red-400"
+
                 onClick={resetProgress}
               >Reset Progress</button>
             )}

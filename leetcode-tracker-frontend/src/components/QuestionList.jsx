@@ -18,7 +18,7 @@ const StyledCard = styled.div`
 
   @keyframes glowPulse {
     0%, 100% { box-shadow: 0 0 15px var(--glowColor); }
-    50% { box-shadow: 0 0 25px var(--glowColor); }
+    50% { box-shadow: 0 0 30px var(--glowColor); }
   }
 `;
 
@@ -47,7 +47,7 @@ export default function QuestionList({ questions, onSolve, onUnsolve, onChat }) 
       {questions.length === 0 ? (
         <div className="col-span-full text-center mt-6 text-gray-400 text-sm">
         <p className="mb-2">🚫 <span className="font-semibold">No questions available for this filter.</span></p>
-        <p className="mb-1">You can try using the <span className="text-yellow-400 font-medium">Populate</span> button if not already done.</p>
+        <p className="mb-1">You can try using the <span className="text-yellow-400 font-medium">Populate</span> button and click <span className="text-blue-400">Refresh</span>  if not already done.</p>
         <p>Or switch tabs/timeframes — we might not have questions for this category just yet.</p>
       </div>
 
