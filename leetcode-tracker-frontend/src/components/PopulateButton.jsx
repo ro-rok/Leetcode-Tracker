@@ -1,30 +1,72 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import styled from 'styled-components';
 import api from '../api';
+import { toast } from 'react-hot-toast';
+import LoadingTerminal from './LoaderTerminal';
 
-export default function PopulateButton({ companyId }) {
+export default function PopulateButton({ companyId, onRefresh }) {
   const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const run = async () => {
     setBusy(true);
+    setLoading(true);
     try {
       await api.post(`/companies/${companyId}/refresh`);
-      alert('Import kicked off!');
-    } catch(e) {
-      alert('Import failed');
+      toast.success('Import kicked off! Fetching questions...');
+      if (typeof onRefresh === 'function') {
+        await onRefresh();
+      }
+    } catch (e) {
+      toast.error('Import failed. Please try again later.');
     } finally {
       setBusy(false);
+      setLoading(false);
     }
   };
 
   return (
-    <button
-      onClick={run}
-      disabled={busy}
-      className={`px-3 py-1 rounded ${
-        busy ? 'bg-yellow-300' : 'bg-yellow-500 hover:bg-yellow-600'
-      } text-gray-900`}
-    >
-      {busy ? '…' : 'Populate'}
-    </button>
+    <StyledWrapper>
+      <button onClick={run} disabled={busy}>
+        <span className="button_top">
+          {busy ? '…' : 'Populate'}
+        </span>
+      </button>
+      {loading && <LoadingTerminal className="mt-2" />}
+    </StyledWrapper>
   );
 }
+
+const StyledWrapper = styled.div`
+  button {
+    --button_radius: 0.75em;
+    --button_color:rgba(253, 230, 138, 0.66);             /* bg-yellow-300 */
+    --button_outline_color:rgb(172, 111, 7);      /* bg-yellow-500 */
+    font-size: 14px;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    border-radius: var(--button_radius);
+    background: var(--button_outline_color);
+  }
+
+  .button_top {
+    display: block;
+    box-sizing: border-box;
+    border: 2px solid var(--button_outline_color);
+    border-radius: var(--button_radius);
+    padding: 0.75em 1.5em;
+    background: var(--button_color);
+    color: var(--button_outline_color);
+    transform: translateY(-0.2em);
+    transition: transform 0.1s ease, background 0.3s ease;
+  }
+
+  button:hover .button_top {
+    transform: translateY(-0.33em);
+  }
+
+  button:active .button_top {
+    transform: translateY(0);
+  }
+`
