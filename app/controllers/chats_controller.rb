@@ -1,6 +1,6 @@
 class ChatsController < ApplicationController
   skip_before_action :verify_authenticity_token, only: [:create]
-  before_action :authenticate_user!
+  # before_action :authenticate_user!
 
   require 'open-uri'
   require 'json'
