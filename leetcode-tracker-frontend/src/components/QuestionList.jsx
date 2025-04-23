@@ -121,7 +121,7 @@ export default function QuestionList({ questions, onSolve, onUnsolve, onChat }) 
       {questions.length > 0 && (
         <div className="col-span-full text-center mt-8 text-sm text-gray-500">
           🎉 <span className="italic">You've reached the end of the question list.</span><br />
-          Try exploring other tabs or use <span className="text-yellow-400 font-medium">Random</span> for a surprise!
+          Try exploring other tabs!
         </div>
       )}
     </div>
