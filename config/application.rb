@@ -4,7 +4,7 @@ require "rails/all"
 
 if ['development', 'test'].include?(ENV['RAILS_ENV'] || ENV['RACK_ENV'])
   require 'dotenv-rails'
-  Dotenv::Railtie.load
+  Dotenv::Rails.load
 end
 
 # Require the gems listed in Gemfile, including any gems
@@ -23,6 +23,9 @@ module LeetcodeTracker
     # Common ones are `templates`, `generators`, or `middleware`, for example.
     config.autoload_lib(ignore: %w[assets tasks])
 
+    config.middleware.use Warden::Manager do |manager|
+      Devise.warden_config = manager
+    end
     # Configuration for the application, engines, and railties goes here.
     #
     # These settings can be overridden in specific environments using the files

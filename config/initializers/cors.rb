@@ -5,14 +5,14 @@
 
 # Read more: https://github.com/cyu/rack-cors
 
-# config/initializers/cors.rb
 Rails.application.config.middleware.insert_before 0, Rack::Cors do
   allow do
-    origins 'http://localhost:5173', 'https://leetcode-tracker-taupe.vercel.app', 'https://grindmate-ai.vercel.app'
+    origins ['http://localhost:5173', 'https://leetcode-tracker-taupe.vercel.app', 'https://grindmate-ai.vercel.app' ]
 
     resource '*',
       headers: :any,
-      methods: %i[get post put patch delete options head],
-      credentials: true
+      methods: [:get, :post, :put, :patch, :delete, :options, :head],
+      credentials: true,
+      expose: ['Set-Cookie']
   end
 end
