@@ -83,6 +83,11 @@ class QuestionsController < ApplicationController
   end
   
   def set_optional_user
-    @current_user = User.find_by(id: params[:user_id]) if params[:user_id].present?
+    if params[:user_id].present?
+      @current_user = User.find_by(id: params[:user_id])
+    else
+      Rails.logger.info "[WARN] No user_id provided in request"
+      @current_user = nil
+    end
   end
 end
