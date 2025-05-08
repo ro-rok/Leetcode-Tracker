@@ -2,8 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import api from '../api';
 import LoaderHamster from './LoaderHamster';
 import ReactMarkdown from 'react-markdown';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import CodeHighlighter from './CodeHighligter';
+import 'highlight.js/styles/atom-one-dark.css';
 
 export default function ChatModal({ open, question, onClose }) {
   const [history, setHistory] = useState([]);
@@ -11,6 +11,7 @@ export default function ChatModal({ open, question, onClose }) {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState(null);
   const chatEndRef = useRef(null);
+  const textareaRef = useRef(null);
   const [autoScroll, setAutoScroll] = useState(true);
 
   const storageKey = `chat-history-${question?.id}`;
@@ -26,7 +27,12 @@ export default function ChatModal({ open, question, onClose }) {
     } else {
       setHistory([]);
     }
-  }, [question?.id]);
+    
+    // Focus the textarea when modal opens
+    if (open && textareaRef.current) {
+      setTimeout(() => textareaRef.current.focus(), 100);
+    }
+  }, [question?.id, open]);
 
   useEffect(() => {
     if (question?.id && history.length > 0) {
@@ -77,7 +83,17 @@ export default function ChatModal({ open, question, onClose }) {
         }
       } finally {
         setSending(false);
+        // Focus back on textarea after sending
+        textareaRef.current?.focus();
       }
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    // Send on Enter without Shift
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
     }
   };
 
@@ -90,79 +106,132 @@ export default function ChatModal({ open, question, onClose }) {
     code({ node, inline, className, children, ...props }) {
       const match = /language-(\w+)/.exec(className || '');
       const codeText = String(children).replace(/\n$/, '');
+      
       return !inline && match ? (
-        <div className="relative">
+        <div className="relative group">
           <button
-            className="absolute top-1 right-1 text-xs bg-black text-white px-2 py-1 rounded hover:bg-gray-700"
+            className="absolute top-2 right-2 text-xs bg-black/70 opacity-0 group-hover:opacity-100 text-white px-2 py-1 rounded hover:bg-gray-700 transition-opacity z-10"
             onClick={() => navigator.clipboard.writeText(codeText)}
           >
             Copy
           </button>
-          <SyntaxHighlighter style={oneDark} language={match[1]} PreTag="div" {...props}>
-            {codeText}
-          </SyntaxHighlighter>
+          <CodeHighlighter code={codeText} language={match[1] || 'javascript'} />
         </div>
       ) : (
-        <code className={className} {...props}>{children}</code>
+        <code className={`px-1 py-0.5 bg-zinc-700 rounded ${className}`} {...props}>
+          {children}
+        </code>
       );
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-zinc-900 text-white w-full max-w-2xl rounded-2xl shadow-xl p-6 flex flex-col max-h-[90vh]">
-        <div className="flex justify-between items-start mb-3">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-zinc-900 text-white w-full max-w-2xl rounded-2xl shadow-xl flex flex-col max-h-[90vh] overflow-hidden">
+        {/* Header */}
+        <div className="flex justify-between items-start p-5 border-b border-zinc-800">
           <div>
-            <h2 className="font-bold text-xl">Ask AI: “{question.title}”</h2>
-            <p className="text-sm text-gray-400">This chat is stateless per request. Last 5 messages saved per question locally.</p>
+            <h2 className="font-bold text-xl">{question.title}</h2>
+            <p className="text-sm text-gray-400 mt-1">Ask the AI assistant about this problem</p>
           </div>
           <button
             onClick={onClose}
-            className="text-sm text-gray-400 hover:text-red-400"
-          >✕</button>
+            className="text-zinc-500 hover:text-zinc-300 p-1 hover:bg-zinc-800 rounded-full transition-colors"
+            aria-label="Close dialog"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
         </div>
-
-        <div className="chat-history flex-1 overflow-y-auto space-y-3 pr-1" onScroll={(e) => {
-          const el = e.target;
-          const atBottom = el.scrollHeight - el.scrollTop === el.clientHeight;
-          setAutoScroll(atBottom);
-        }}>
+        
+        {/* Chat history */}
+        <div 
+          className="flex-1 overflow-y-auto p-5 space-y-4" 
+          onScroll={(e) => {
+            const el = e.target;
+            const atBottom = Math.abs(el.scrollHeight - el.scrollTop - el.clientHeight) < 10;
+            setAutoScroll(atBottom);
+          }}
+        >
+          {history.length === 0 && (
+            <div className="text-center text-zinc-500 py-10">
+              <p>No messages yet. Start by asking a question.</p>
+            </div>
+          )}
+          
           {history.map((m, i) => (
-            <div key={i} className={m.from === 'user' ? 'text-right' : 'text-left'}>
-              <div className={`text-left inline-block p-3 rounded-xl whitespace-pre-wrap text-sm ${m.from === 'user' ? 'bg-blue-600' : m.from === 'system' ? 'bg-gray-600 text-xs italic' : 'bg-zinc-800'}`}>
+            <div key={i} className={`flex ${m.from === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div 
+                className={`max-w-[80%] rounded-2xl p-3 shadow 
+                  ${m.from === 'user' 
+                    ? 'bg-blue-600 text-white rounded-tr-none' 
+                    : m.from === 'system' 
+                      ? 'bg-zinc-700/70 text-xs italic text-gray-300' 
+                      : 'bg-zinc-800 text-gray-100 rounded-tl-none'}`}
+              >
                 <ReactMarkdown components={renderers}>{m.text}</ReactMarkdown>
               </div>
             </div>
           ))}
-          {sending && <div className="text-center mt-2"><LoaderHamster /></div>}
+          
+          {sending && (
+            <div className="flex justify-start">
+              <div className="bg-zinc-800 rounded-2xl p-3 rounded-tl-none shadow animate-pulse">
+                <LoaderHamster />
+              </div>
+            </div>
+          )}
+          
           <div ref={chatEndRef} />
         </div>
 
-        {error && <div className="text-red-400 text-sm mt-2">{error}</div>}
+        {/* Error message */}
+        {error && (
+          <div className="px-5 py-2 bg-red-900/30 border-t border-red-800">
+            <p className="text-red-400 text-sm">{error}</p>
+          </div>
+        )}
 
-        <div className="mt-3 flex gap-2">
-          <textarea
-            rows={1}
-            className="flex-1 p-2 rounded bg-zinc-800 resize-y min-h-[66px] max-h-[88px] text-sm"
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            placeholder="Paste code or ask a question…"
-            disabled={sending}
-          />
-          <button
-            onClick={sendMessage}
-            className="px-4 py-2 bg-purple-600 rounded-md hover:bg-purple-700 text-sm"
-            disabled={sending || !input.trim()}
-          >
-            {sending ? '…' : 'Send'}
-          </button>
-        </div>
-
-        <div className="mt-2 flex justify-end">
-          <button
-            onClick={clearChat}
-            className="text-xs text-gray-400 hover:underline"
-          >Clear Chat</button>
+        {/* Input area */}
+        <div className="p-5 border-t border-zinc-800">
+          <div className="flex gap-2">
+            <textarea
+              ref={textareaRef}
+              rows={2}
+              className="flex-1 p-3 rounded-xl bg-zinc-800 text-sm border border-zinc-700 resize-none min-h-[66px] max-h-[144px] focus:outline-none focus:border-blue-500 transition-colors"
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Type your message... (Press Enter to send, Shift+Enter for new line)"
+              disabled={sending}
+            />
+            <button
+              onClick={sendMessage}
+              className="px-4 py-2 bg-purple-600 rounded-xl hover:bg-purple-700 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed self-end h-10 flex items-center justify-center"
+              disabled={sending || !input.trim()}
+            >
+              {sending ? (
+                <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              ) : (
+                <span>Send</span>
+              )}
+            </button>
+          </div>
+          
+          <div className="flex justify-between mt-3 text-xs text-zinc-500">
+            <p>Shift+Enter for new line</p>
+            <button
+              onClick={clearChat}
+              className="hover:text-zinc-300 transition-colors"
+            >
+              Clear conversation
+            </button>
+          </div>
         </div>
       </div>
     </div>
