@@ -25,7 +25,7 @@ function SearchBar({ value, onChange }) {
 
 function CompaniesList({ companies, selected, onSelect, favorites, onToggleFav }) {
   return (
-    <ul className="space-y-1 overflow-y-auto h-[calc(100vh-150px)] pr-1 sm:scrollbar-thin sm:scrollbar-thumb-zinc-700 sm:scrollbar-track-zinc-900 custom-scroll">
+    <ul className="space-y-1 overflow-y-auto h-[calc(100vh-150px)] pr-1">
       {companies.map(c => (
         <li key={c.id} className="group flex items-center justify-between px-2 py-1 rounded-md hover:bg-zinc-800 transition-all cursor-pointer">
           <button
@@ -246,70 +246,72 @@ export default function App() {
         />
       </aside>
 
-      <main className="flex-1 p-6 overflow-y-auto relative scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-zinc-900">
-        <button
-          className="sm:hidden fixed top-4 left-4 z-50 bg-gray-800 text-white px-3 py-1 rounded shadow"
-          onClick={() => setSidebarOpen(true)}
-        >☰</button>
+      <main className="flex-1 overflow-hidden relative">
+        <div className='h-full p-6 overflow-y-auto'>
+          <button
+            className="sm:hidden fixed top-4 left-4 z-50 bg-gray-800 text-white px-3 py-1 rounded shadow"
+            onClick={() => setSidebarOpen(true)}
+          >☰</button>
 
-        {!company ? (
-          <Homepage />
-        ) : (
-          <>
-            <div className="flex items-center justify-between mb-4">
-              <h1 className="text-3xl font-bold ml-10 sm:ml-0">{company.name}</h1>
-              <PopulateButton companyId={company.id} onRefresh={fetchQuestions} />
-            </div>
+          {!company ? (
+            <Homepage />
+          ) : (
+            <>
+              <div className="flex items-center justify-between mb-4">
+                <h1 className="text-3xl font-bold ml-10 sm:ml-0">{company.name}</h1>
+                <PopulateButton companyId={company.id} onRefresh={fetchQuestions} />
+              </div>
 
-            <TabNav active={activeTab} onChange={setActiveTab} />
+              <TabNav active={activeTab} onChange={setActiveTab} />
 
-            <Filters
-              filters={filters}
-              setFilters={setFilters}
-              onFetch={() => {}}
-              onRandom={getRandom}
-              topics={topics}
-            />
+              <Filters
+                filters={filters}
+                setFilters={setFilters}
+                onFetch={() => {}}
+                onRandom={getRandom}
+                topics={topics}
+              />
 
-            {randomQ  && (
-              <RandomQuestionCard
-                question={randomQ}
+              {randomQ  && (
+                <RandomQuestionCard
+                  question={randomQ}
+                  onSolve={startSolve}
+                  onUnsolve={unSolveRandom}
+                  onChat={q => setChatQ(q)}
+                />
+              )}
+
+              {user && (
+                <div className="flex items-center justify-between mb-2 text-sm">
+                  <button
+                    className="underline text-red-500 hover:text-red-400"
+                    onClick={resetProgress}
+                  >
+                    Reset Progress
+                  </button>
+                  {questions.length !== 0 && (
+                    <div className="text-right text-gray-400">
+                      Solved <span className="font-semibold text-green-400">{questions.filter(q => q.solved).length}</span> out of <span className="font-semibold text-blue-400">{questions.length}</span> questions.
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <QuestionList
+                questions={questions}
                 onSolve={startSolve}
-                onUnsolve={unSolveRandom}
+                onUnsolve={id => {
+                  api.delete(`/questions/${id}/solve.json?user_id=${user.id}`)
+                  setQuestions(qs =>
+                    qs.map(q => q.id === id ? { ...q, solved: false } : q)
+                  )
+                }}
                 onChat={q => setChatQ(q)}
               />
-            )}
-
-            {user && (
-              <div className="flex items-center justify-between mb-2 text-sm">
-                <button
-                  className="underline text-red-500 hover:text-red-400"
-                  onClick={resetProgress}
-                >
-                  Reset Progress
-                </button>
-                {questions.length !== 0 && (
-                  <div className="text-right text-gray-400">
-                    Solved <span className="font-semibold text-green-400">{questions.filter(q => q.solved).length}</span> out of <span className="font-semibold text-blue-400">{questions.length}</span> questions.
-                  </div>
-                )}
-              </div>
-            )}
-
-            <QuestionList
-              questions={questions}
-              onSolve={startSolve}
-              onUnsolve={id => {
-                api.delete(`/questions/${id}/solve.json?user_id=${user.id}`)
-                setQuestions(qs =>
-                  qs.map(q => q.id === id ? { ...q, solved: false } : q)
-                )
-              }}
-              onChat={q => setChatQ(q)}
-            />
-          
-          </>
-        )}
+            
+            </>
+          )}
+        </div>
       </main>
 
       <SolveModal

@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+body, html {
+    overflow: hidden;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  
+
 ::-webkit-scrollbar {
     width: 4px;
     height: 4px;
@@ -18,6 +26,7 @@
     background: #2563eb;
 }
 
+/* Firefox scrollbar support for specific elements */
 * {
     scrollbar-width: thin;
     scrollbar-color: #1e40af #0f172a;
