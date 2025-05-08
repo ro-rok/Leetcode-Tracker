@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import api from './api'
 import LoginSignupForm from './components/LoginSignupForm'
 import LogoutButton from './components/LogoutButton'
@@ -73,11 +73,32 @@ export default function App() {
   }, [company]);
 
   useEffect(() => {
+    // Try to get user from localStorage first
+    const savedUser = localStorage.getItem('currentUser');
+    if (savedUser) {
+      try {
+        setUser(JSON.parse(savedUser));
+      } catch (e) {
+        console.error('Failed to parse stored user');
+      }
+    }
+  
+    // Still try to fetch from API
     api.get('/users/current.json')
-      .then(r => setUser(r.data))
-      .catch(() => setUser(null))
-    api.get('/companies.json').then(r => setCompanies(r.data))
-  }, [])
+      .then(r => {
+        setUser(r.data);
+        localStorage.setItem('currentUser', JSON.stringify(r.data));
+      })
+      .catch(() => {
+        // Only clear if we don't already have a user
+        if (!savedUser) {
+          setUser(null);
+          localStorage.removeItem('currentUser');
+        }
+      });
+    
+    api.get('/companies.json').then(r => setCompanies(r.data));
+  }, []);
 
   const shownCompanies = (() => {
     const filtered = companies.filter(c =>
@@ -98,21 +119,46 @@ export default function App() {
     localStorage.setItem('favs', JSON.stringify(next))
   }
 
-  const fetchQuestions = () => {
-    if (!company) return
-    setRandomQ(null)
+    // Create a single source of truth for fetching
+  const fetchQuestionsRef = useRef(null);
+
+ const fetchQuestions = useCallback(() => {
+    if (!company) return;
+    console.log('🔁 Fetching questions...');
+    setRandomQ(null);
+    
     api.get(`/companies/${company.id}/questions.json`, {
       params: {
         timeframe: activeTab,
-        difficulty: filters.difficulty.join(',')}
+        difficulty: filters.difficulty.join(','),
+        user_id: user?.id
+      }
     })
     .then(r => setQuestions(r.data))
-    .catch(() => setQuestions([]))
-  }
+    .catch(() => setQuestions([]));
+  }, [company, activeTab, filters.difficulty, user?.id]);
 
   useEffect(() => {
-    fetchQuestions()
-  }, [company, activeTab])
+    if (!company) return;
+    
+    console.log('📊 Data dependencies changed - debouncing fetch');
+    
+    if (fetchQuestionsRef.current) {
+      clearTimeout(fetchQuestionsRef.current);
+    }
+
+    fetchQuestionsRef.current = setTimeout(() => {
+      console.log('⏱️ Executing fetch after debounce');
+      fetchQuestions();
+    }, 300); 
+    
+    return () => {
+      if (fetchQuestionsRef.current) {
+        clearTimeout(fetchQuestionsRef.current);
+        fetchQuestionsRef.current = null;
+      }
+    };
+  }, [company?.id, activeTab, filters.difficulty, user?.id]);
 
   const getRandom = () => {
     if (!company) return
@@ -120,7 +166,8 @@ export default function App() {
       params: {
         timeframe: activeTab,
         difficulty: filters.difficulty.join(','),
-        topics: filters.topics.join(',')
+        topics: filters.topics.join(','),
+        user_id: user?.id
       }
     })
     .then(r => setRandomQ(r.data))
@@ -222,7 +269,7 @@ export default function App() {
             <Filters
               filters={filters}
               setFilters={setFilters}
-              onFetch={fetchQuestions}
+              onFetch={() => {}}
               onRandom={getRandom}
               topics={topics}
             />
@@ -237,25 +284,32 @@ export default function App() {
             )}
 
             {user && (
-              <button
-                className="mb-2 text-sm underline text-red-500 hover:text-red-400"
-
-                onClick={resetProgress}
-              >Reset Progress</button>
+              <div className="flex items-center justify-between mb-2 text-sm">
+                <button
+                  className="underline text-red-500 hover:text-red-400"
+                  onClick={resetProgress}
+                >
+                  Reset Progress
+                </button>
+                {questions.length !== 0 && (
+                  <div className="text-right text-gray-400">
+                    Solved <span className="font-semibold text-green-400">{questions.filter(q => q.solved).length}</span> out of <span className="font-semibold text-blue-400">{questions.length}</span> questions.
+                  </div>
+                )}
+              </div>
             )}
 
-            
-              <QuestionList
-                questions={questions}
-                onSolve={startSolve}
-                onUnsolve={id => {
-                  api.delete(`/questions/${id}/solve.json?user_id=${user.id}`)
-                  setQuestions(qs =>
-                    qs.map(q => q.id === id ? { ...q, solved: false } : q)
-                  )
-                }}
-                onChat={q => setChatQ(q)}
-              />
+            <QuestionList
+              questions={questions}
+              onSolve={startSolve}
+              onUnsolve={id => {
+                api.delete(`/questions/${id}/solve.json?user_id=${user.id}`)
+                setQuestions(qs =>
+                  qs.map(q => q.id === id ? { ...q, solved: false } : q)
+                )
+              }}
+              onChat={q => setChatQ(q)}
+            />
           
           </>
         )}
