@@ -129,7 +129,7 @@ export default function ChatModal({ open, question, onClose }) {
         }}>
           {history.map((m, i) => (
             <div key={i} className={m.from === 'user' ? 'text-right' : 'text-left'}>
-              <div className={`inline-block p-3 rounded-xl whitespace-pre-wrap text-sm ${m.from === 'user' ? 'bg-blue-600' : m.from === 'system' ? 'bg-gray-600 text-xs italic' : 'bg-zinc-800'}`}>
+              <div className={`text-left inline-block p-3 rounded-xl whitespace-pre-wrap text-sm ${m.from === 'user' ? 'bg-blue-600' : m.from === 'system' ? 'bg-gray-600 text-xs italic' : 'bg-zinc-800'}`}>
                 <ReactMarkdown components={renderers}>{m.text}</ReactMarkdown>
               </div>
             </div>
@@ -143,7 +143,7 @@ export default function ChatModal({ open, question, onClose }) {
         <div className="mt-3 flex gap-2">
           <textarea
             rows={1}
-            className="flex-1 p-2 rounded bg-zinc-800 resize-y min-h-[48px] max-h-[3px] text-sm"
+            className="flex-1 p-2 rounded bg-zinc-800 resize-y min-h-[66px] max-h-[88px] text-sm"
             value={input}
             onChange={e => setInput(e.target.value)}
             placeholder="Paste code or ask a question…"
