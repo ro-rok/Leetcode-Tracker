@@ -124,7 +124,6 @@ export default function App() {
 
  const fetchQuestions = useCallback(() => {
     if (!company) return;
-    console.log('🔁 Fetching questions...');
     setRandomQ(null);
     
     api.get(`/companies/${company.id}/questions.json`, {
@@ -141,14 +140,12 @@ export default function App() {
   useEffect(() => {
     if (!company) return;
     
-    console.log('📊 Data dependencies changed - debouncing fetch');
     
     if (fetchQuestionsRef.current) {
       clearTimeout(fetchQuestionsRef.current);
     }
 
     fetchQuestionsRef.current = setTimeout(() => {
-      console.log('⏱️ Executing fetch after debounce');
       fetchQuestions();
     }, 300); 
     
