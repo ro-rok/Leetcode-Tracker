@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  get '/ping', to: 'ping#show'
+
   devise_for :users,
     skip: [:sessions],
     controllers: { registrations: 'registrations' },

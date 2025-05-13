@@ -10,17 +10,47 @@ export default function PopulateButton({ companyId, onRefresh }) {
     setBusy(true);
     try {
       await api.post(`/companies/${companyId}/refresh`);
-      toast.success('Import kicked off! Fetching questions...');
-  
+      toast.success('Import kicked off! Fetching questions...', {
+      style: {
+        background: '#fde68a',
+        color: '#92400e',
+        fontWeight: 'bold',
+      },
+      iconTheme: {
+        primary: '#f59e42',
+        secondary: '#fff',
+      },
+      });
+
       // Wait for 4 seconds to let the job finish (adjust timing if needed)
       setTimeout(async () => {
-        if (typeof onRefresh === 'function') {
-          await onRefresh();
-          toast.success('Questions refreshed!');
-        }
+      if (typeof onRefresh === 'function') {
+        await onRefresh();
+        toast.success('Questions refreshed!', {
+        style: {
+          background: '#fde68a',
+          color: '#92400e',
+          fontWeight: 'bold',
+        },
+        iconTheme: {
+          primary: '#f59e42',
+          secondary: '#fff',
+        },
+        });
+      }
       }, 3000);
     } catch (e) {
-      toast.error('Import failed. Please try again later.');
+      toast.error('Import failed. Please try again later.', {
+      style: {
+        background: '#fee2e2',
+        color: '#991b1b',
+        fontWeight: 'bold',
+      },
+      iconTheme: {
+        primary: '#ef4444',
+        secondary: '#fff',
+      },
+      });
     } finally {
       setBusy(false);
     }
