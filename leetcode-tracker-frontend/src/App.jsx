@@ -89,8 +89,10 @@ export default function App() {
     const showLoading = () => {
       toastId = toast.loading(
         <div className="flex items-center gap-2">
-          <span className="animate-spin inline-block w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full"></span>
-          <span>Waking up backend, please have patience...</span>
+          <span>Waking up backend, please have patience...
+            <br />
+            <span className="text-sm text-gray-400">This may take a few seconds.</span>
+          </span>
         </div>,
         { style: { background: "#18181b", color: "#fff", fontSize: "1rem", minWidth: "260px" } }
       );
@@ -102,7 +104,6 @@ export default function App() {
         }
         toast.error(
           <div className="flex items-center gap-2">
-            <span className="text-red-400">⏳</span>
             <span>
               Backend is taking longer than expected. Thank you for your patience.<br />
               Please try again later.
@@ -125,7 +126,10 @@ export default function App() {
             toast.success(
               <div className="flex items-center gap-2">
                 <span className="text-green-400">✅</span>
-                <span>Backend is awake!</span>
+                <span>Backend is awake!
+                  <br />
+                  You can now use the app. Sorry for the wait.
+                </span>
               </div>,
               { style: { background: "#18181b", color: "#fff", fontSize: "1rem", minWidth: "220px" } }
             );
