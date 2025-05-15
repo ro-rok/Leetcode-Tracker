@@ -1,6 +1,6 @@
-import { FaCheckCircle, FaTimesCircle, FaRobot } from 'react-icons/fa';
+import { FaCheckCircle, FaTimesCircle, FaRobot, FaTimes } from 'react-icons/fa';
 
-export default function RandomQuestionCard({ question, onSolve, onUnsolve, onChat }) {
+export default function RandomQuestionCard({ question, onSolve, onUnsolve, onChat, onClose }) {
   if (!question) return null;
 
   const solved = question.solved;
@@ -15,6 +15,14 @@ export default function RandomQuestionCard({ question, onSolve, onUnsolve, onCha
       <div className="absolute top-0 left-0 px-3 py-1 text-xs font-semibold text-white bg-black/40 rounded-br-xl">
         {question.difficulty.toUpperCase()}
       </div>
+
+      {/* Top-right close */}
+      <button
+        onClick={() => onClose()}
+        className="absolute top-0 right-0 p-2 text-gray-300 hover:text-white transition"
+      >
+        <FaTimes className="text-lg" />
+      </button>
 
       {/* Title */}
       <a
