@@ -1,5 +1,6 @@
 Rails.application.routes.draw do
   get '/ping', to: 'ping#show'
+  post '/users/reset_progress', to: 'users#reset_progress'
 
   devise_for :users,
     skip: [:sessions],
@@ -11,6 +12,7 @@ devise_scope :user do
   delete '/users/sign_out',  to: 'sessions#destroy', defaults: { format: :json }
   get    '/users/current',   to: 'sessions#current', defaults: { format: :json }
 end
+
 
 # Add explicit format to companies route
 resources :companies, only: %i[index show], defaults: { format: :json } do
