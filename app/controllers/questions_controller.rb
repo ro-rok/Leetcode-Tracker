@@ -19,7 +19,7 @@ class QuestionsController < ApplicationController
       scope = scope.where(topics_query, *topics.map { |t| "%#{t}%" })
     end
 
-    render json: scope.select(:id, :title, :link, :difficulty, :frequency, :acceptance_rate, :topics).map { |q|
+    render json: scope.select(:id, :title, :link, :difficulty, :frequency, :acceptance_rate, :updated_at, :topics).order(:frequency, :updated_at).map { |q|
       {
         id: q.id,
         title: q.title,
@@ -28,6 +28,7 @@ class QuestionsController < ApplicationController
         frequency: q.frequency,
         acceptance_rate: q.acceptance_rate,
         topics: q.topics,
+        updated_at: q.updated_at,
         solved: @current_user&.solved_questions&.exists?(q.id) || false
       }
     }
@@ -38,6 +39,23 @@ class QuestionsController < ApplicationController
     company = Company.find(params[:company_id])
     timeframe = params[:timeframe].presence || '30_days'
     scope = company.questions.where(timeframe: timeframe)
+
+    if params[:update].present?
+      month_year = params[:update].split
+      if month_year.length == 2
+        month_name = month_year[0]
+        year = "20" + month_year[1]
+        
+        month_number = Date::ABBR_MONTHNAMES.index(month_name.capitalize)
+        
+        if month_number && year.to_i.between?(2000, 2099)
+          start_date = Date.new(year.to_i, month_number, 1)
+          end_date = start_date.end_of_month
+          
+          scope = scope.where(updated_at: start_date.beginning_of_day..end_date.end_of_day)
+        end
+      end
+    end
 
     if params[:difficulty].present?
       scope = scope.where(difficulty: params[:difficulty].upcase)

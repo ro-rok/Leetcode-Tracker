@@ -11,6 +11,9 @@ import ChatModal from './components/ChatModal'
 import RandomQuestionCard from './components/RandomQuestion'
 import Homepage from './components/Homepage'
 import { toast } from 'react-hot-toast'
+import { format } from 'date-fns'
+import { FaTimes} from 'react-icons/fa'
+
 
 function SearchBar({ value, onChange }) {
   return (
@@ -62,9 +65,12 @@ export default function App() {
   const [questions, setQuestions] = useState([])
   const [randomQ, setRandomQ] = useState(null)
   const [modal, setModal] = useState(null)
-  const [chatQ, setChatQ] = useState(null);
-  const [topics, setTopics] = useState([]);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [chatQ, setChatQ] = useState(null)
+  const [topics, setTopics] = useState([])
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [allQuestions, setAllQuestions] = useState([])
+  const [updateMonths, setUpdateMonths]   = useState([])    
+  const [activeMonth, setActiveMonth]     = useState(null) 
 
   const PING_INTERVAL = 25 * 60 * 1000;
   const PING_TIMEOUT = 15 * 1000;
@@ -164,12 +170,12 @@ export default function App() {
     };
   }, [pingBackend]);
 
-  useEffect(() => {
-    if (!company) return;
-    api.get(`/companies/${company.id}/topics.json`)
-      .then(r => setTopics(r.data))
-      .catch(() => setTopics([]));
-  }, [company]);
+  // useEffect(() => {
+  //   if (!company) return;
+  //   api.get(`/companies/${company.id}/topics.json`)
+  //     .then(r => setTopics(r.data))
+  //     .catch(() => setTopics([]));
+  // }, [company]);
 
   useEffect(() => {
     // Try to get user from localStorage first
@@ -221,40 +227,68 @@ export default function App() {
     // Create a single source of truth for fetching
   const fetchQuestionsRef = useRef(null);
 
- const fetchQuestions = useCallback(() => {
+  const fetchQuestions = useCallback(() => {
     if (!company) return;
-    setRandomQ(null);
-    
+    const toastId = toast.loading('Loading questions...', {
+      style: { background: '#18181b', color: '#fff', fontSize: '1rem', minWidth: '220px' },
+    });
     api.get(`/companies/${company.id}/questions.json`, {
       params: {
         timeframe: activeTab,
         difficulty: filters.difficulty.join(','),
-        user_id: user?.id
+        topics:     filters.topics.join(','),
+        user_id:    user?.id
       }
     })
-    .then(r => setQuestions(r.data))
-    .catch(() => setQuestions([]));
-  }, [company, activeTab, filters.difficulty, user?.id]);
+    .then(r => {
+      const data = r.data;
+      setAllQuestions(data);
+      // extract unique “MMM yy” labels, newest-first
+      const months = Array.from(
+        new Set(
+          data
+            .map(q => format(new Date(q.updated_at), 'MMM yy'))
+            .sort((a,b) => {
+              return new Date(b) - new Date(a)
+            })
+        )
+      );
+      setUpdateMonths(months);
+      setActiveMonth(prev => prev || months[0]);
+      toast.dismiss(toastId);
+    })
+    .catch(() => {
+      setAllQuestions([]);
+      toast.dismiss(toastId);
+      toast.error('Failed to load questions.', {
+        style: { background: '#fee2e2', color: '#991b1b', fontWeight: 'bold' },
+      });
+    });
+  }, [company?.id, activeTab, filters.difficulty, filters.topics, user?.id]);
 
   useEffect(() => {
-    if (!company) return;
-    
-    
-    if (fetchQuestionsRef.current) {
-      clearTimeout(fetchQuestionsRef.current);
-    }
+    if (!activeMonth) return
+    const filtered = allQuestions
+      .filter(q => format(new Date(q.updated_at), 'MMM yy') === activeMonth)
+      .sort((a,b) => b.frequency - a.frequency) 
+    setQuestions(filtered)
+  }, [allQuestions, activeMonth])
 
-    fetchQuestionsRef.current = setTimeout(() => {
-      fetchQuestions();
-    }, 300); 
-    
-    return () => {
-      if (fetchQuestionsRef.current) {
-        clearTimeout(fetchQuestionsRef.current);
-        fetchQuestionsRef.current = null;
-      }
-    };
-  }, [company?.id, activeTab, filters.difficulty, user?.id]);
+  useEffect(() => {
+    if (!company) return
+    const timer = setTimeout(fetchQuestions, 300)
+    return () => clearTimeout(timer)
+  }, [company, activeTab, fetchQuestions])
+
+
+  const handleSelectCompany = useCallback((c) => {
+    setCompany(c)
+    setActiveTab('30_days')
+    setSidebarOpen(false)
+    setActiveMonth(null)
+    setAllQuestions([])
+  }, [])
+
 
   const getRandom = () => {
     if (!company) return
@@ -263,7 +297,8 @@ export default function App() {
         timeframe: activeTab,
         difficulty: filters.difficulty.join(','),
         topics: filters.topics.join(','),
-        user_id: user?.id
+        user_id: user?.id,
+        update: activeMonth ? activeMonth : null,
       }
     })
     .then(r => setRandomQ(r.data))
@@ -300,6 +335,17 @@ export default function App() {
     if (!user) return setShowAuth(true)
     if (!confirm('Reset all progress for this company?')) return
     await api.post('/users/reset_progress.json', { company_id: company.id, user_id: user.id })
+    toast.success('Progress reset! Fetching questions...', {
+      style: {
+        background: '#fde68a',
+        color: '#92400e',
+        fontWeight: 'bold',
+      },
+      iconTheme: {
+        primary: '#f59e42',
+        secondary: '#fff',
+      },
+    })
     fetchQuestions()
   }
 
@@ -315,7 +361,9 @@ export default function App() {
           <button
             className="text-sm text-gray-400 hover:text-white"
             onClick={() => setSidebarOpen(false)}
-          >✕</button>
+          >
+            <FaTimes className="text-2xl" />
+          </button>
         </div>
 
         <div className="mb-4">
@@ -325,11 +373,11 @@ export default function App() {
               <LogoutButton onLogout={() => {
                 api.delete('/users/sign_out.json')
                 setUser(null)
-              }} />
-            </div>
-          ) : (
-            <button
-              className="px-3 py-1 bg-blue-600 rounded"
+                }} />
+              </div>
+              ) : (
+              <button
+                className
               onClick={() => setShowAuth(true)}
             >Login / Sign Up</button>
           )}
@@ -339,7 +387,7 @@ export default function App() {
         <CompaniesList
           companies={shownCompanies}
           selected={company}
-          onSelect={c => { setCompany(c); setActiveTab('30_days'); setSidebarOpen(false); }}
+          onSelect={handleSelectCompany}
           favorites={favorites}
           onToggleFav={toggleFav}
         />
@@ -370,6 +418,29 @@ export default function App() {
                 onRandom={getRandom}
                 topics={topics}
               />
+    
+              
+              {updateMonths.length > 0 && (
+                <div className="w-full flex flex-wrap items-center justify-center gap-3 mb-4 ">
+                  <div className="flex gap-2">
+                    <span className="text-sm text-gray-400 px-4 py-1.5">Last Updated:</span>
+                    {updateMonths.map(month => (
+                      <button
+                        key={month}
+                        onClick={() => setActiveMonth(month)}
+                        className={`px-3 py-1 rounded-full text-sm font-medium transition
+                          ${
+                            activeMonth === month
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-zinc-800 text-gray-300 hover:bg-zinc-700'
+                          }`}
+                      >
+                        {month === updateMonths[0] ? 'Latest' : month}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {randomQ  && (
                 <RandomQuestionCard
@@ -377,6 +448,7 @@ export default function App() {
                   onSolve={startSolve}
                   onUnsolve={unSolveRandom}
                   onChat={q => setChatQ(q)}
+                  onClose={() => setRandomQ(null)}
                 />
               )}
 
@@ -393,6 +465,7 @@ export default function App() {
                       Solved <span className="font-semibold text-green-400">{questions.filter(q => q.solved).length}</span> out of <span className="font-semibold text-blue-400">{questions.length}</span> questions.
                     </div>
                   )}
+                  
                 </div>
               )}
 
