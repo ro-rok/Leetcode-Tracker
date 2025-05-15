@@ -13,6 +13,7 @@ import Homepage from './components/Homepage'
 import { toast } from 'react-hot-toast'
 import { format } from 'date-fns'
 import { FaTimes} from 'react-icons/fa'
+import { getCachedQuestions, setCachedQuestions } from './storage'
 
 
 function SearchBar({ value, onChange }) {
@@ -224,47 +225,79 @@ export default function App() {
     localStorage.setItem('favs', JSON.stringify(next))
   }
 
-    // Create a single source of truth for fetching
-  const fetchQuestionsRef = useRef(null);
+ const fetchQuestions = useCallback(() => {
+    if (!company) return Promise.resolve();
 
-  const fetchQuestions = useCallback(() => {
-    if (!company) return;
-    const toastId = toast.loading('Loading questions...', {
-      style: { background: '#18181b', color: '#fff', fontSize: '1rem', minWidth: '220px' },
-    });
-    api.get(`/companies/${company.id}/questions.json`, {
-      params: {
-        timeframe: activeTab,
-        difficulty: filters.difficulty.join(','),
-        topics:     filters.topics.join(','),
-        user_id:    user?.id
-      }
-    })
-    .then(r => {
-      const data = r.data;
-      setAllQuestions(data);
-      // extract unique “MMM yy” labels, newest-first
-      const months = Array.from(
-        new Set(
-          data
-            .map(q => format(new Date(q.updated_at), 'MMM yy'))
-            .sort((a,b) => {
-              return new Date(b) - new Date(a)
-            })
-        )
-      );
-      setUpdateMonths(months);
-      setActiveMonth(prev => prev || months[0]);
-      toast.dismiss(toastId);
-    })
-    .catch(() => {
-      setAllQuestions([]);
-      toast.dismiss(toastId);
-      toast.error('Failed to load questions.', {
-        style: { background: '#fee2e2', color: '#991b1b', fontWeight: 'bold' },
+    const params = {
+      timeframe: activeTab,
+      difficulty: filters.difficulty.join(','),
+      topics:     filters.topics.join(','),
+      user_id:    user?.id,
+    };
+
+    const cached = getCachedQuestions(company.id, activeTab);
+    if (cached) {
+      hydrate(cached);
+      api.get(`/companies/${company.id}/questions.json`, { params })
+        .then(r => {
+          hydrate(r.data);
+          setCachedQuestions(company.id, activeTab, r.data);
+        })
+        .catch(console.error);
+      return Promise.resolve();
+    }
+
+    return api
+      .get(`/companies/${company.id}/questions.json`, { params })
+      .then(r => {
+        hydrate(r.data);
+        setCachedQuestions(company.id, activeTab, r.data);
+      })
+      .catch(err => {
+        console.error('Failed to load questions', err);
       });
-    });
   }, [company?.id, activeTab, filters.difficulty, filters.topics, user?.id]);
+
+  function hydrate(data) {
+    setAllQuestions(data);
+    const months = Array.from(new Set(
+      data
+        .map(q => format(new Date(q.updated_at), 'MMM yy'))
+        .sort((a,b) => +new Date(b) - +new Date(a))
+    ));
+    setUpdateMonths(months);
+    setActiveMonth(prev => prev || months[0]);
+  }
+
+  const loadingToastId = useRef(null);
+
+  useEffect(() => {
+    if (!company) return
+    if (loadingToastId.current) {
+      toast.dismiss(loadingToastId.current)
+    }
+    loadingToastId.current = toast.loading('Loading questions…', {
+      style: {
+        background: '#18181b',
+        color: '#fff',
+        fontSize: '1rem',
+        minWidth: '220px',
+      },
+    })
+
+    const timer = setTimeout(() => {
+      fetchQuestions()
+    }, 300)
+
+    return () => clearTimeout(timer)
+  }, [company, activeTab, filters.difficulty, filters.topics, fetchQuestions])
+
+    useEffect(() => {
+    if (loadingToastId.current && questions.length >= 0) {
+      toast.dismiss(loadingToastId.current)
+      loadingToastId.current = null
+    }
+  }, [questions])
 
   useEffect(() => {
     if (!activeMonth) return
@@ -274,11 +307,6 @@ export default function App() {
     setQuestions(filtered)
   }, [allQuestions, activeMonth])
 
-  useEffect(() => {
-    if (!company) return
-    const timer = setTimeout(fetchQuestions, 300)
-    return () => clearTimeout(timer)
-  }, [company, activeTab, fetchQuestions])
 
 
   const handleSelectCompany = useCallback((c) => {

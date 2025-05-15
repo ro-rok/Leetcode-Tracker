@@ -25,9 +25,16 @@ export default function QuestionList({ questions, onSolve, onUnsolve, onChat }) 
   const cardRefs = useRef([]);
   cardRefs.current = [];
 
+  const lastAnimatedIds = useRef('');
   useEffect(() => {
-    if (!questions.length) return;
-    if (!cardRefs.current.length) return;
+    if (!questions.length || !cardRefs.current.length) return;
+
+    const ids = questions.map(q => q.id).join(',');
+
+    if (ids === lastAnimatedIds.current) {
+      return;
+    }
+    lastAnimatedIds.current = ids;
 
     gsap.fromTo(
       cardRefs.current,
