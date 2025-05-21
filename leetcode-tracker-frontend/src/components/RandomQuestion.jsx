@@ -28,7 +28,7 @@ export default function RandomQuestionCard({ question, onSolve, onUnsolve, onCha
       className={`mb-5 relative rounded-xl p-5 bg-gradient-to-br from-black/40 ${getDifficultyGradient(question.difficulty)} backdrop-blur-sm border-2 ${borderColor} shadow-lg ${glowColor} transition-transform transform hover:scale-[1.02] animate-fade-in `}
     >
       {/* Top-left difficulty badge */}
-      <div className={`absolute top-0 left-0 px-3 py-1 text-xs ${getDifficultyTextColor(question.difficulty)} font-semibold bg-black/40 rounded-br-xl`}>
+      <div className={`absolute top-0 left-0 px-3 py-1 text-xs ${getDifficultyTextColor(question.difficulty)} font-semibold `}>
         {question.difficulty.toUpperCase()}
       </div>
 
