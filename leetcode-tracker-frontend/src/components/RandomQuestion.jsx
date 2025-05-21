@@ -6,13 +6,29 @@ export default function RandomQuestionCard({ question, onSolve, onUnsolve, onCha
   const solved = question.solved;
   const borderColor = solved ? 'border-green-500' : 'border-red-500';
   const glowColor = solved ? 'shadow-green-500/30' : 'shadow-red-500/30';
+  const getDifficultyGradient = level => {
+    switch (level.toLowerCase()) {
+      case 'easy': return 'to-green-700/20';
+      case 'medium': return 'to-yellow-600/20';
+      case 'hard': return 'to-red-700/20';
+      default: return 'to-gray-600/30';
+    }
+  };
+  const getDifficultyTextColor = level => {
+    switch (level.toLowerCase()) {
+      case 'easy': return 'text-green-500';
+      case 'medium': return 'text-yellow-500';
+      case 'hard': return 'text-red-500';
+      default: return 'text-gray-600';
+    }
+  }
 
   return (
     <div
-      className={`mb-5 relative rounded-xl p-5 bg-gradient-to-br from-gray-800 to-black/70 border-2 ${borderColor} shadow-lg ${glowColor} transition-transform transform hover:scale-[1.02] animate-fade-in `}
+      className={`mb-5 relative rounded-xl p-5 bg-gradient-to-br from-black/40 ${getDifficultyGradient(question.difficulty)} backdrop-blur-sm border-2 ${borderColor} shadow-lg ${glowColor} transition-transform transform hover:scale-[1.02] animate-fade-in `}
     >
       {/* Top-left difficulty badge */}
-      <div className="absolute top-0 left-0 px-3 py-1 text-xs font-semibold text-white bg-black/40 rounded-br-xl">
+      <div className={`absolute top-0 left-0 px-3 py-1 text-xs ${getDifficultyTextColor(question.difficulty)} font-semibold bg-black/40 rounded-br-xl`}>
         {question.difficulty.toUpperCase()}
       </div>
 
@@ -29,14 +45,14 @@ export default function RandomQuestionCard({ question, onSolve, onUnsolve, onCha
         href={question.link}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-lg font-bold text-yellow-300 hover:underline block mb-2"
+        className="text-lg font-bold text-purple-500 hover:underline block mb-2"
       >
         {question.title}
       </a>
 
       {/* Frequency & Topics */}
       <div className="text-sm text-gray-300 space-y-1">
-        <div><span className="font-semibold text-yellow-400">Frequency:</span> {question.frequency}</div>
+        <div><span className="font-semibold text-rose-400">Frequency:</span> {question.frequency}</div>
         <div><span className="font-semibold text-blue-300">Topics:</span> {question.topics}</div>
       </div>
 
