@@ -226,13 +226,13 @@ export default function App() {
   }
 
  const fetchQuestions = useCallback(() => {
-    if (!company) return Promise.resolve();
+    if (!company) return Promise.resolve([]);
 
     const params = {
       timeframe: activeTab,
       difficulty: filters.difficulty.join(','),
-      topics:     filters.topics.join(','),
-      user_id:    user?.id,
+      topics: filters.topics.join(','),
+      user_id: user?.id,
     };
 
     const cached = getCachedQuestions(company.id, activeTab);
@@ -244,7 +244,7 @@ export default function App() {
           setCachedQuestions(company.id, activeTab, r.data);
         })
         .catch(console.error);
-      return Promise.resolve();
+      return Promise.resolve(cached); // Return cached for immediate use
     }
 
     return api
@@ -252,9 +252,11 @@ export default function App() {
       .then(r => {
         hydrate(r.data);
         setCachedQuestions(company.id, activeTab, r.data);
+        return r.data; // Return fetched questions
       })
       .catch(err => {
         console.error('Failed to load questions', err);
+        return [];
       });
   }, [company?.id, activeTab, filters.difficulty, filters.topics, user?.id]);
 
@@ -272,10 +274,12 @@ export default function App() {
   const loadingToastId = useRef(null);
 
   useEffect(() => {
-    if (!company) return
+    if (!company) return;
+
     if (loadingToastId.current) {
-      toast.dismiss(loadingToastId.current)
+      toast.dismiss(loadingToastId.current);
     }
+
     loadingToastId.current = toast.loading('Loading questions…', {
       style: {
         background: '#18181b',
@@ -283,14 +287,31 @@ export default function App() {
         fontSize: '1rem',
         minWidth: '220px',
       },
-    })
+    });
 
     const timer = setTimeout(() => {
-      fetchQuestions()
-    }, 300)
+      fetchQuestions().then(fetched => {
+        toast.dismiss(loadingToastId.current);
+        if (!fetched.length) {
+          loadingToastId.current = toast.error(
+            'No questions found. Try populating or switching to a different company.',
+            {
+              duration: 3000,
+              style: {
+                background: '#18181b',
+                color: '#fff',
+                fontSize: '1rem',
+                minWidth: '280px',
+              },
+            }
+          );
+        }
+      });
+    }, 300);
 
-    return () => clearTimeout(timer)
-  }, [company, activeTab, filters.difficulty, filters.topics, fetchQuestions])
+    return () => clearTimeout(timer);
+  }, [company, activeTab, filters.difficulty, filters.topics, fetchQuestions]);
+
 
     useEffect(() => {
     if (loadingToastId.current && questions.length >= 0) {
@@ -315,6 +336,7 @@ export default function App() {
     setSidebarOpen(false)
     setActiveMonth(null)
     setAllQuestions([])
+    setQuestions([])
   }, [])
 
 

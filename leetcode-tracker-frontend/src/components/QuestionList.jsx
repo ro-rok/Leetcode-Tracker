@@ -52,18 +52,30 @@ export default function QuestionList({ questions, onSolve, onUnsolve, onChat }) 
     }
   };
 
+    const getDifficultyTextColor = level => {
+    switch (level.toLowerCase()) {
+      case 'easy': return 'text-green-500';
+      case 'medium': return 'text-yellow-500';
+      case 'hard': return 'text-red-500';
+      default: return 'text-gray-600';
+    }
+  }
+
   if (!questions || questions.length === 0) {
     return (
       <div className="col-span-full text-center mt-6 text-gray-400 text-sm">
         <p className="mb-2">🚫 <span className="font-semibold">No questions available for this filter or company.</span></p>
-        <p className="mb-1">Try using the <span className="text-yellow-400 font-medium">Populate</span> button, or switch tabs/timeframes.</p>
-        <p className="mb-1">If populating, it may take a few seconds to load. Please be patient or click the <span className="text-blue-400 font-medium">Refresh</span> button.</p>
+        <p className="mb-1">It's possible that questions haven't been added yet for this company.</p>
+        <p className="mb-1">
+          Try using the <span className="text-yellow-400 font-medium">Populate</span> button, switching to a different company, or changing the timeframes/tabs.
+        </p>
+        <p className="mb-1">If you're populating, it may take a few seconds. Please be patient or click the <span className="text-blue-400 font-medium">Refresh</span> button.</p>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 items-stretch">
       {questions.map((q, i) => {
         const borderColor = q.solved ? '#4ade80' : '#f87171';
         const glowColor = q.solved ? '#22c55e88' : '#ef444488';
@@ -73,12 +85,12 @@ export default function QuestionList({ questions, onSolve, onUnsolve, onChat }) 
             key={q.id}
             ref={(el) => { if (el) cardRefs.current[i] = el; }}
             style={{ '--borderColor': borderColor, '--glowColor': glowColor }}
-            className={`question-card bg-gradient-to-br ${getDifficultyGradient(q.difficulty)} to-black/40 backdrop-blur-md transition-transform transform hover:scale-[1.05]`}
+            className={`question-card flex flex-col justify-between h-full bg-gradient-to-br ${getDifficultyGradient(q.difficulty)} to-black/40 backdrop-blur-md transition-transform transform hover:scale-[1.1]`}
           >
-            <div className="absolute top-0 right-0 px-2 py-1 rounded-bl-xl bg-black/30 text-xs font-semibold text-white/80">
+            <div className={`absolute bottom-0 right-0 px-2 py-1 rounded-tl-xl bg-black/30 text-xs font-semibold ${getDifficultyTextColor(q.difficulty)}`}>
               {q.difficulty.toUpperCase()}
             </div>
-            <div className="absolute bottom-0 right-0 px-2 py-1 rounded-tl-xl bg-black/30 text-xs font-semibold text-white/80">
+            <div className="absolute top-0 right-0 px-2 py-1 mb-2 rounded-tr-xl text-xs font-semibold text-white/80">
               {q.solved
                 ? <><FaCheckCircle className="inline text-green-400" /> Solved</>
                 : <><FaTimesCircle className="inline text-red-400" /> Unsolved</>}
@@ -94,7 +106,7 @@ export default function QuestionList({ questions, onSolve, onUnsolve, onChat }) 
               </a>
               <div className="text-sm text-gray-300">
                 <div className="mb-1">
-                  <span className="font-semibold text-yellow-400">Frequency:</span> {q.frequency}
+                  <span className="font-semibold text-rose-400">Frequency:</span> {q.frequency}
                 </div>
                 <div>
                   <span className="font-semibold text-blue-300">Topics:</span> {q.topics}
